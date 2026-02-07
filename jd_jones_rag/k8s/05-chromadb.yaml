@@ -1,0 +1,72 @@
+# JD Jones RAG - ChromaDB Deployment
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chromadb
+  namespace: jd-jones-rag
+  labels:
+    app: chromadb
+    component: vectordb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chromadb
+  template:
+    metadata:
+      labels:
+        app: chromadb
+        component: vectordb
+    spec:
+      containers:
+      - name: chromadb
+        image: chromadb/chroma:1.4.1
+        ports:
+        - containerPort: 8000
+        env:
+        - name: IS_PERSISTENT
+          value: "TRUE"
+        - name: ANONYMIZED_TELEMETRY
+          value: "FALSE"
+        - name: CHROMA_SERVER_AUTH_CREDENTIALS_PROVIDER
+          value: "chromadb.auth.token.TokenConfigServerAuthCredentialsProvider"
+        volumeMounts:
+        - name: chroma-data
+          mountPath: /chroma/chroma
+        resources:
+          requests:
+            cpu: "500m"
+            memory: 1Gi
+          limits:
+            cpu: "2"
+            memory: 4Gi
+        livenessProbe:
+          httpGet:
+            path: /api/v1/heartbeat
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /api/v1/heartbeat
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+      volumes:
+      - name: chroma-data
+        persistentVolumeClaim:
+          claimName: chroma-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: chromadb
+  namespace: jd-jones-rag
+spec:
+  selector:
+    app: chromadb
+  ports:
+  - port: 8000
+    targetPort: 8000
+  type: ClusterIP

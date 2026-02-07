@@ -1,0 +1,124 @@
+# JD Jones RAG - PostgreSQL with pgvector
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: jd-jones-rag
+  labels:
+    app: postgres
+    component: database
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+        component: database
+    spec:
+      containers:
+      - name: postgres
+        image: pgvector/pgvector:pg16
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_USER
+          valueFrom:
+            configMapKeyRef:
+              name: jd-jones-config
+              key: DATABASE_USER
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: jd-jones-secrets
+              key: POSTGRES_PASSWORD
+        - name: POSTGRES_DB
+          valueFrom:
+            configMapKeyRef:
+              name: jd-jones-config
+              key: DATABASE_NAME
+        volumeMounts:
+        - name: postgres-data
+          mountPath: /var/lib/postgresql/data
+        - name: init-sql
+          mountPath: /docker-entrypoint-initdb.d
+        resources:
+          requests:
+            cpu: "500m"
+            memory: 1Gi
+          limits:
+            cpu: "2"
+            memory: 4Gi
+        livenessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - jdjones
+            - -d
+            - jd_jones_rag
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - jdjones
+            - -d
+            - jd_jones_rag
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      volumes:
+      - name: postgres-data
+        persistentVolumeClaim:
+          claimName: postgres-data
+      - name: init-sql
+        configMap:
+          name: postgres-init
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: jd-jones-rag
+spec:
+  selector:
+    app: postgres
+  ports:
+  - port: 5432
+    targetPort: 5432
+  type: ClusterIP
+---
+# Init SQL ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-init
+  namespace: jd-jones-rag
+data:
+  01_schema.sql: |
+    -- Enable pgvector extension
+    CREATE EXTENSION IF NOT EXISTS vector;
+    
+    -- Super Memory Schema
+    CREATE TABLE IF NOT EXISTS memory_entries (
+        id SERIAL PRIMARY KEY,
+        user_id VARCHAR(255) NOT NULL,
+        session_id VARCHAR(255),
+        content TEXT NOT NULL,
+        embedding vector(384),
+        memory_type VARCHAR(50) DEFAULT 'conversation',
+        importance_score FLOAT DEFAULT 0.5,
+        access_count INTEGER DEFAULT 0,
+        last_accessed TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        metadata JSONB DEFAULT '{}'
+    );
+    
+    CREATE INDEX IF NOT EXISTS idx_memory_user ON memory_entries(user_id);
+    CREATE INDEX IF NOT EXISTS idx_memory_embedding ON memory_entries USING ivfflat (embedding vector_cosine_ops);

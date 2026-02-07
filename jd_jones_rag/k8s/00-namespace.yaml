@@ -1,0 +1,41 @@
+# JD Jones RAG - Kubernetes Deployment
+# Namespace configuration
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: jd-jones-rag
+  labels:
+    app.kubernetes.io/name: jd-jones-rag
+    app.kubernetes.io/part-of: jd-jones-manufacturing
+---
+# Resource Quotas for the namespace
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: jd-jones-rag-quota
+  namespace: jd-jones-rag
+spec:
+  hard:
+    requests.cpu: "8"
+    requests.memory: 16Gi
+    limits.cpu: "16"
+    limits.memory: 32Gi
+    persistentvolumeclaims: "10"
+    pods: "50"
+---
+# Limit Range for default resources
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: jd-jones-rag-limits
+  namespace: jd-jones-rag
+spec:
+  limits:
+  - default:
+      cpu: "500m"
+      memory: 512Mi
+    defaultRequest:
+      cpu: "100m"
+      memory: 128Mi
+    type: Container

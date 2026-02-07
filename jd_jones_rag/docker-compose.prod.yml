@@ -1,0 +1,284 @@
+version: '3.8'
+
+services:
+  # ===========================================
+  # API Server with production optimizations
+  # ===========================================
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: jd_jones_api
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://jdjones:${POSTGRES_PASSWORD}@postgres:5432/jd_jones_rag
+      - REDIS_URL=redis://redis:6379/0
+      - CHROMA_HOST=chromadb
+      - CHROMA_PORT=8000
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - ENVIRONMENT=production
+      # Local LLM (Ollama) Configuration
+      - LLM_PROVIDER=ollama
+      - LLM_MODEL=llama3.2
+      - OLLAMA_BASE_URL=http://host.docker.internal:11434
+      # Local Embeddings Configuration
+      - EMBEDDING_PROVIDER=local
+      - EMBEDDING_MODEL=all-MiniLM-L6-v2
+      - EMBEDDING_DIMENSIONS=384
+      # Local Reranker Configuration
+      - RERANKER_PROVIDER=cross_encoder
+      - RERANKER_MODEL=cross-encoder/ms-marco-MiniLM-L-6-v2
+      # Optimization settings
+      - EMBEDDING_BATCH_SIZE=64
+      - MAX_CONCURRENT_REQUESTS=100
+      - GC_ENABLED=true
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      chromadb:
+        condition: service_started
+    volumes:
+      - ./src:/app/src
+      - ./uploads:/app/uploads
+      - ./data:/app/data
+      - ./scripts:/app/scripts
+      - ./demo_system.py:/app/demo_system.py
+      # Model cache volumes for persistence (appuser home dir)
+      - huggingface_cache:/home/appuser/.cache/huggingface
+      - sentence_transformers_cache:/home/appuser/.cache/torch/sentence_transformers
+    networks:
+      - jd_jones_network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
+        reservations:
+          memory: 2G
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ===========================================
+  # PostgreSQL with pgvector
+  # ===========================================
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: jd_jones_postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-jdjones}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-jd_jones_rag}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./sql/super_memory_schema.sql:/docker-entrypoint-initdb.d/01_schema.sql
+    networks:
+      - jd_jones_network
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-jdjones} -d ${POSTGRES_DB:-jd_jones_rag}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+
+  # ===========================================
+  # Redis with optimized config
+  # ===========================================
+  redis:
+    image: redis:7-alpine
+    container_name: jd_jones_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+      - ./redis.conf:/usr/local/etc/redis/redis.conf
+    networks:
+      - jd_jones_network
+    restart: unless-stopped
+    command: redis-server /usr/local/etc/redis/redis.conf
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+
+  # ===========================================
+  # ChromaDB
+  # ===========================================
+  chromadb:
+    image: chromadb/chroma:1.4.1
+    container_name: jd_jones_chromadb
+    ports:
+      - "8001:8000"
+    volumes:
+      - chroma_data:/chroma/chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+      - ANONYMIZED_TELEMETRY=FALSE
+    networks:
+      - jd_jones_network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+
+  # ===========================================
+  # NGINX Load Balancer (production)
+  # ===========================================
+  nginx:
+    image: nginx:alpine
+    container_name: jd_jones_nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - api
+    networks:
+      - jd_jones_network
+    restart: unless-stopped
+    profiles:
+      - production
+
+  # ===========================================
+  # Celery Worker
+  # ===========================================
+  celery-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: jd_jones_celery_worker
+    command: celery -A src.super_memory.sync.background_sync worker --loglevel=info --concurrency=4
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://jdjones:${POSTGRES_PASSWORD}@postgres:5432/jd_jones_rag
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/2
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./uploads:/app/uploads
+      - huggingface_cache:/home/appuser/.cache/huggingface
+      - sentence_transformers_cache:/home/appuser/.cache/torch/sentence_transformers
+    networks:
+      - jd_jones_network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+
+  # ===========================================
+  # Celery Beat (Scheduler)
+  # ===========================================
+  celery-beat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: jd_jones_celery_beat
+    command: celery -A src.super_memory.sync.background_sync beat --loglevel=info
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://jdjones:${POSTGRES_PASSWORD}@postgres:5432/jd_jones_rag
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/2
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - jd_jones_network
+    restart: unless-stopped
+
+  # ===========================================
+  # Prometheus (Monitoring)
+  # ===========================================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: jd_jones_prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    networks:
+      - jd_jones_network
+    restart: unless-stopped
+    profiles:
+      - monitoring
+
+  # ===========================================
+  # Grafana (Visualization)
+  # ===========================================
+  grafana:
+    image: grafana/grafana:latest
+    container_name: jd_jones_grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards
+    networks:
+      - jd_jones_network
+    restart: unless-stopped
+    profiles:
+      - monitoring
+
+  # ===========================================
+  # Flower (Celery Monitoring)
+  # ===========================================
+  flower:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: jd_jones_flower
+    command: celery -A src.super_memory.sync.background_sync flower --port=5555
+    ports:
+      - "5555:5555"
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/2
+    depends_on:
+      - redis
+      - celery-worker
+    networks:
+      - jd_jones_network
+    restart: unless-stopped
+    profiles:
+      - monitoring
+
+networks:
+  jd_jones_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+  chroma_data:
+  huggingface_cache:
+  sentence_transformers_cache:
+  prometheus_data:
+  grafana_data:

@@ -1,0 +1,92 @@
+# JD Jones RAG System - Requirements
+# Python 3.11+
+
+# Core Framework
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+pydantic==2.10.4
+pydantic-settings==2.7.1
+email-validator==2.1.0
+
+# LangChain & AI
+langchain==0.3.14
+langchain-openai==0.3.0
+langchain-community==0.3.14
+langchain-core==0.3.29
+langchain-text-splitters==0.3.5
+openai==1.58.1
+
+# Local Embeddings & Reranking (FREE)
+sentence-transformers==3.3.1
+
+# NLP & Tokenization
+nltk==3.9.1
+spacy==3.8.4
+
+# Vector Database - ChromaDB
+chromadb==1.4.1
+
+# PostgreSQL with pgvector
+asyncpg==0.30.0
+psycopg[binary]==3.2.4
+pgvector==0.3.6
+sqlalchemy[asyncio]==2.0.36
+
+# Redis
+redis==5.2.1
+
+# Document Processing
+pypdf==5.1.0
+python-docx==1.1.2
+python-pptx==1.0.2
+openpyxl==3.1.5
+unstructured==0.16.11
+beautifulsoup4==4.12.3
+lxml==5.3.0
+markdown==3.7
+
+# Authentication
+python-jose[cryptography]==3.3.0
+bcrypt==4.0.1
+passlib[bcrypt]==1.7.4
+python-multipart==0.0.20
+pyjwt==2.8.0
+
+# Background Tasks
+celery==5.4.0
+flower==2.0.1
+
+# Utilities
+aiofiles==24.1.0
+httpx==0.28.1
+tenacity==9.0.0
+numpy>=1.22.4,<2
+python-dotenv==1.0.1
+pyyaml==6.0.2
+tiktoken==0.8.0
+cachetools==5.3.2  # O(1) LRU/TTL cache for embedding cache
+
+# Monitoring
+prometheus-client==0.20.0
+
+# GraphRAG Dependencies
+networkx==3.2.1
+
+# Multi-Modal RAG
+Pillow>=10.0.0
+
+# PDF Generation (Quotations)
+reportlab>=4.0.0
+
+# Testing
+pytest==8.3.4
+pytest-asyncio==0.25.2
+
+# MCP
+mcp==1.2.0
+pytest-cov==6.0.0
+
+# Development
+black==24.10.0
+isort==5.13.2
+mypy==1.14.1

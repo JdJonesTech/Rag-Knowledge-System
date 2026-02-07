@@ -1,0 +1,53 @@
+/* JD Jones External Portal - Global Styles */
+/* Brand Colors: Primary Red #952825 */
+
+:root {
+  --jd-red: #952825;
+  --jd-red-dark: #7a201e;
+  --jd-red-light: #b03030;
+  --jd-charcoal: #2d2d2d;
+  --jd-gray-dark: #444444;
+  --jd-gray: #666666;
+  --jd-gray-light: #e5e5e5;
+  --jd-white: #ffffff;
+  --jd-off-white: #f8f8f8;
+  --jd-success: #2e7d32;
+  --jd-error: #c62828;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html,
+body {
+  max-width: 100vw;
+  min-height: 100vh;
+  overflow-x: hidden;
+  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+  background-color: var(--jd-off-white);
+  color: var(--jd-charcoal);
+  line-height: 1.5;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 600;
+  color: var(--jd-charcoal);
+  line-height: 1.3;
+}
+
+a {
+  color: var(--jd-red);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}

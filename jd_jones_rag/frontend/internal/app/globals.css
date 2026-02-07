@@ -1,0 +1,228 @@
+/* JD Jones Internal Portal - Global Styles */
+/* Brand Colors: Primary Red #952825 */
+
+:root {
+  --jd-red: #952825;
+  --jd-red-dark: #7a201e;
+  --jd-red-light: #b03030;
+  --jd-charcoal: #2d2d2d;
+  --jd-gray-dark: #444444;
+  --jd-gray: #666666;
+  --jd-gray-light: #e5e5e5;
+  --jd-white: #ffffff;
+  --jd-off-white: #f8f8f8;
+  --jd-success: #2e7d32;
+  --jd-error: #c62828;
+  --jd-warning: #ed6c02;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html,
+body {
+  max-width: 100vw;
+  min-height: 100vh;
+  overflow-x: hidden;
+  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+  background-color: var(--jd-off-white);
+  color: var(--jd-charcoal);
+  line-height: 1.5;
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  color: var(--jd-charcoal);
+  line-height: 1.3;
+}
+
+h1 {
+  font-size: 2rem;
+}
+
+h2 {
+  font-size: 1.5rem;
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.btn-primary {
+  background-color: var(--jd-red);
+  color: var(--jd-white);
+}
+
+.btn-primary:hover {
+  background-color: var(--jd-red-dark);
+}
+
+.btn-primary:disabled {
+  background-color: var(--jd-gray-light);
+  color: var(--jd-gray);
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background-color: var(--jd-white);
+  color: var(--jd-charcoal);
+  border: 1px solid var(--jd-gray-light);
+}
+
+.btn-secondary:hover {
+  background-color: var(--jd-off-white);
+  border-color: var(--jd-gray);
+}
+
+/* Forms */
+.input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  border: 1px solid var(--jd-gray-light);
+  border-radius: 4px;
+  background-color: var(--jd-white);
+  color: var(--jd-charcoal);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--jd-red);
+  box-shadow: 0 0 0 3px rgba(149, 40, 37, 0.1);
+}
+
+.input::placeholder {
+  color: var(--jd-gray);
+}
+
+/* Cards */
+.card {
+  background-color: var(--jd-white);
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
+  padding: 1.5rem;
+}
+
+/* Layout */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+/* Header */
+.header {
+  background-color: var(--jd-red);
+  color: var(--jd-white);
+  padding: 1rem 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.header-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--jd-white);
+}
+
+.header-subtitle {
+  font-size: 0.75rem;
+  opacity: 0.9;
+}
+
+/* Messages */
+.message {
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+  max-width: 80%;
+}
+
+.message-user {
+  background-color: var(--jd-red);
+  color: var(--jd-white);
+  margin-left: auto;
+}
+
+.message-assistant {
+  background-color: var(--jd-white);
+  color: var(--jd-charcoal);
+  border: 1px solid var(--jd-gray-light);
+}
+
+/* Error state */
+.error {
+  color: var(--jd-error);
+  font-size: 0.875rem;
+}
+
+/* Loading */
+.loading {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--jd-gray);
+  font-size: 0.875rem;
+}
+
+.loading-dot {
+  width: 6px;
+  height: 6px;
+  background-color: var(--jd-red);
+  border-radius: 50%;
+  animation: pulse 1.4s infinite ease-in-out both;
+}
+
+.loading-dot:nth-child(1) { animation-delay: -0.32s; }
+.loading-dot:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes pulse {
+  0%, 80%, 100% {
+    transform: scale(0);
+  }
+  40% {
+    transform: scale(1);
+  }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--jd-off-white);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--jd-gray-light);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--jd-gray);
+}

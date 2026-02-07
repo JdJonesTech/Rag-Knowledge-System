@@ -1,0 +1,338 @@
+# JD Jones RAG System - Access Control Configuration
+# Defines hierarchical role-based access to knowledge bases
+
+# ===========================================
+# ROLE DEFINITIONS
+# ===========================================
+roles:
+  # Level 0 - Company-Wide Access (All Internal Users)
+  company_wide:
+    description: "Base access level for all internal employees"
+    knowledge_bases:
+      - product_catalog
+      - company_policies
+      - safety_guidelines
+      - general_procedures
+      - public_faqs
+    permissions:
+      - view_main_context
+      - search_documents
+      - chat_with_agent
+  
+  # Level 1 - Sales Department
+  sales:
+    description: "Sales team access"
+    inherits: company_wide
+    additional_knowledge_bases:
+      - pricing_guides
+      - customer_database
+      - commission_structures
+      - competitor_analysis
+      - sales_playbooks
+      - quote_templates
+    permissions:
+      - view_sales_context
+      - access_customer_data
+      - generate_quotes
+  
+  # Level 1 - Production Department
+  production:
+    description: "Production floor access"
+    inherits: company_wide
+    additional_knowledge_bases:
+      - work_instructions
+      - machine_manuals
+      - maintenance_schedules
+      - quality_procedures
+      - safety_protocols
+      - equipment_specifications
+    permissions:
+      - view_production_context
+      - access_work_instructions
+      - view_maintenance_data
+  
+  # Level 1 - Engineering Department
+  engineering:
+    description: "Engineering team access"
+    inherits: company_wide
+    additional_knowledge_bases:
+      - design_documents
+      - material_certificates
+      - test_reports
+      - compliance_documents
+      - cad_specifications
+      - technical_drawings
+    permissions:
+      - view_engineering_context
+      - access_design_docs
+      - view_test_reports
+  
+  # Level 1 - Customer Service Department
+  customer_service:
+    description: "Customer service team access"
+    inherits: company_wide
+    additional_knowledge_bases:
+      - support_scripts
+      - escalation_procedures
+      - return_policies
+      - warranty_information
+      - troubleshooting_guides
+    permissions:
+      - view_customer_service_context
+      - access_support_scripts
+      - view_customer_history
+  
+  # Level 2 - Management
+  manager:
+    description: "Department manager access"
+    inherits:
+      - sales
+      - production
+      - engineering
+      - customer_service
+    additional_knowledge_bases:
+      - performance_reports
+      - budget_documents
+      - strategic_plans
+    permissions:
+      - view_all_departments
+      - access_reports
+      - manage_team_access
+  
+  # Level 3 - Executive
+  executive:
+    description: "Executive leadership access"
+    inherits: manager
+    additional_knowledge_bases:
+      - financial_reports
+      - board_documents
+      - confidential_strategies
+      - investor_relations
+    permissions:
+      - view_confidential
+      - access_financials
+      - full_system_access
+  
+  # External - Customer Access
+  external_customer:
+    description: "External customer access (limited)"
+    knowledge_bases:
+      - product_catalog_public
+      - faq_database
+      - order_tracking_info
+      - return_policy_public
+    permissions:
+      - view_public_only
+      - submit_inquiries
+      - track_orders
+
+# ===========================================
+# KNOWLEDGE BASE DEFINITIONS
+# ===========================================
+knowledge_bases:
+  # Level 0 - Main Context
+  product_catalog:
+    level: 0
+    description: "Complete product catalog with specifications"
+    document_types:
+      - pdf
+      - xlsx
+    access: internal
+    public_subset: true
+  
+  company_policies:
+    level: 0
+    description: "Company policies and procedures"
+    document_types:
+      - pdf
+      - docx
+    access: internal
+  
+  safety_guidelines:
+    level: 0
+    description: "Safety guidelines and compliance"
+    document_types:
+      - pdf
+    access: internal
+  
+  general_procedures:
+    level: 0
+    description: "General operational procedures"
+    document_types:
+      - pdf
+      - docx
+    access: internal
+  
+  public_faqs:
+    level: 0
+    description: "Frequently asked questions"
+    document_types:
+      - md
+      - txt
+    access: public
+  
+  # Level 1 - Sales
+  pricing_guides:
+    level: 1
+    department: sales
+    description: "Pricing structures and discount guidelines"
+    document_types:
+      - xlsx
+      - pdf
+    access: restricted
+    sensitivity: high
+  
+  customer_database:
+    level: 1
+    department: sales
+    description: "Customer information and history"
+    document_types:
+      - xlsx
+    access: restricted
+    sensitivity: high
+  
+  # Level 1 - Production
+  work_instructions:
+    level: 1
+    department: production
+    description: "Detailed work instructions for production"
+    document_types:
+      - pdf
+      - docx
+    access: restricted
+  
+  machine_manuals:
+    level: 1
+    department: production
+    description: "Equipment manuals and specifications"
+    document_types:
+      - pdf
+    access: restricted
+  
+  # Level 1 - Engineering
+  design_documents:
+    level: 1
+    department: engineering
+    description: "Product design documents and specifications"
+    document_types:
+      - pdf
+      - dwg
+    access: restricted
+    sensitivity: high
+  
+  material_certificates:
+    level: 1
+    department: engineering
+    description: "Material certifications and test reports"
+    document_types:
+      - pdf
+    access: restricted
+
+# ===========================================
+# PERMISSION DEFINITIONS
+# ===========================================
+permissions:
+  view_main_context:
+    description: "View Level 0 (company-wide) knowledge base"
+    action: read
+    scope: main_context
+  
+  view_sales_context:
+    description: "View sales department knowledge base"
+    action: read
+    scope: sales_context
+  
+  view_production_context:
+    description: "View production department knowledge base"
+    action: read
+    scope: production_context
+  
+  view_engineering_context:
+    description: "View engineering department knowledge base"
+    action: read
+    scope: engineering_context
+  
+  view_customer_service_context:
+    description: "View customer service knowledge base"
+    action: read
+    scope: customer_service_context
+  
+  view_all_departments:
+    description: "View all department knowledge bases"
+    action: read
+    scope: all_departments
+  
+  view_confidential:
+    description: "View confidential/executive documents"
+    action: read
+    scope: confidential
+  
+  view_public_only:
+    description: "View only public-facing content"
+    action: read
+    scope: public
+  
+  search_documents:
+    description: "Search and retrieve documents"
+    action: search
+    scope: accessible
+  
+  chat_with_agent:
+    description: "Interact with internal AI agent"
+    action: chat
+    scope: internal
+  
+  submit_inquiries:
+    description: "Submit customer inquiries"
+    action: write
+    scope: inquiries
+  
+  access_customer_data:
+    description: "Access customer information"
+    action: read
+    scope: customer_data
+  
+  full_system_access:
+    description: "Full administrative access"
+    action: admin
+    scope: all
+
+# ===========================================
+# DEPARTMENT MAPPINGS
+# ===========================================
+departments:
+  sales:
+    display_name: "Sales"
+    contexts:
+      - sales_context
+    default_role: sales
+  
+  production:
+    display_name: "Production"
+    contexts:
+      - production_context
+    default_role: production
+  
+  engineering:
+    display_name: "Engineering"
+    contexts:
+      - engineering_context
+    default_role: engineering
+  
+  customer_service:
+    display_name: "Customer Service"
+    contexts:
+      - customer_service_context
+    default_role: customer_service
+  
+  management:
+    display_name: "Management"
+    contexts:
+      - all_contexts
+    default_role: manager
+  
+  executive:
+    display_name: "Executive"
+    contexts:
+      - all_contexts
+    default_role: executive

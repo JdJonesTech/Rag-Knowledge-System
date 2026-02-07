@@ -1,0 +1,3909 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JD Jones RAG System Implementation Workflow | Complete Step-by-Step Guide</title>
+    <style>
+        :root {
+            --primary: #1e3a5f;
+            --secondary: #2c5282;
+            --accent: #3182ce;
+            --success: #38a169;
+            --warning: #dd6b20;
+            --danger: #e53e3e;
+            --light-bg: #f7fafc;
+            --border: #e2e8f0;
+            --step-bg: #ebf8ff;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            line-height: 1.7;
+            color: #2d3748;
+            background: #fff;
+        }
+        
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 40px 30px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 50px 30px;
+            text-align: center;
+        }
+        
+        header h1 {
+            font-size: 2.3rem;
+            margin-bottom: 15px;
+        }
+        
+        header .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.95;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .toc {
+            background: var(--light-bg);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 25px 30px;
+            margin: 30px 0;
+        }
+        
+        .toc h3 {
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+        
+        .toc ol {
+            margin-left: 20px;
+        }
+        
+        .toc li {
+            margin: 8px 0;
+        }
+        
+        .toc a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+        
+        .toc a:hover {
+            text-decoration: underline;
+        }
+        
+        h2 {
+            color: var(--primary);
+            font-size: 1.7rem;
+            margin: 50px 0 20px 0;
+            padding: 15px 20px;
+            background: linear-gradient(90deg, var(--step-bg), transparent);
+            border-left: 5px solid var(--accent);
+            border-radius: 0 8px 8px 0;
+        }
+        
+        h3 {
+            color: var(--secondary);
+            font-size: 1.3rem;
+            margin: 30px 0 15px 0;
+        }
+        
+        h4 {
+            color: var(--primary);
+            font-size: 1.1rem;
+            margin: 20px 0 10px 0;
+        }
+        
+        p {
+            margin-bottom: 15px;
+        }
+        
+        .phase-header {
+            background: var(--primary);
+            color: white;
+            padding: 20px 25px;
+            border-radius: 10px;
+            margin: 40px 0 25px 0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .phase-header .phase-num {
+            background: white;
+            color: var(--primary);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.3rem;
+        }
+        
+        .phase-header h2 {
+            margin: 0;
+            padding: 0;
+            background: none;
+            border: none;
+            color: white;
+        }
+        
+        .step-box {
+            background: white;
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--accent);
+            border-radius: 0 10px 10px 0;
+            padding: 20px 25px;
+            margin: 20px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        
+        .step-box h4 {
+            color: var(--accent);
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .step-num {
+            background: var(--accent);
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        .action-box {
+            background: #f0fff4;
+            border: 1px solid #9ae6b4;
+            border-radius: 8px;
+            padding: 15px 20px;
+            margin: 15px 0;
+        }
+        
+        .action-box h5 {
+            color: var(--success);
+            margin: 0 0 10px 0;
+            font-size: 1rem;
+        }
+        
+        .command-box {
+            background: #1a202c;
+            color: #e2e8f0;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            overflow-x: auto;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+        }
+        
+        .command-box .comment {
+            color: #718096;
+        }
+        
+        .command-box .cmd {
+            color: #68d391;
+        }
+        
+        pre {
+            background: #1a202c;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+        
+        code {
+            background: #edf2f7;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', monospace;
+            font-size: 0.9em;
+        }
+        
+        pre code {
+            background: none;
+            padding: 0;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 0.95rem;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border: 1px solid var(--border);
+        }
+        
+        th {
+            background: var(--primary);
+            color: white;
+            font-weight: 600;
+        }
+        
+        tr:nth-child(even) {
+            background: var(--light-bg);
+        }
+        
+        ul, ol {
+            margin: 15px 0;
+            padding-left: 25px;
+        }
+        
+        li {
+            margin-bottom: 8px;
+        }
+        
+        .architecture-diagram {
+            background: #1a202c;
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin: 25px 0;
+            font-family: monospace;
+            font-size: 0.8rem;
+            overflow-x: auto;
+            white-space: pre;
+            line-height: 1.3;
+        }
+        
+        .note-box {
+            background: #fffaf0;
+            border: 1px solid #fbd38d;
+            border-radius: 8px;
+            padding: 15px 20px;
+            margin: 20px 0;
+        }
+        
+        .note-box strong {
+            color: var(--warning);
+        }
+        
+        .warning-box {
+            background: #fed7d7;
+            border: 1px solid #fc8181;
+            border-radius: 8px;
+            padding: 15px 20px;
+            margin: 20px 0;
+        }
+        
+        .warning-box strong {
+            color: var(--danger);
+        }
+        
+        .success-box {
+            background: #c6f6d5;
+            border: 1px solid #68d391;
+            border-radius: 8px;
+            padding: 15px 20px;
+            margin: 20px 0;
+        }
+        
+        .success-box strong {
+            color: var(--success);
+        }
+        
+        .file-structure {
+            background: var(--light-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+        
+        .checklist {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .checklist li {
+            padding: 8px 0 8px 35px;
+            position: relative;
+        }
+        
+        .checklist li::before {
+            content: "☐";
+            position: absolute;
+            left: 5px;
+            color: var(--accent);
+            font-size: 1.2rem;
+        }
+        
+        .tech-badge {
+            display: inline-block;
+            background: var(--accent);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin: 2px;
+        }
+        
+        .deliverable {
+            background: linear-gradient(135deg, #ebf8ff, #e6fffa);
+            border: 2px solid var(--accent);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .deliverable h5 {
+            color: var(--accent);
+            margin: 0 0 10px 0;
+        }
+        
+        footer {
+            background: var(--primary);
+            color: white;
+            text-align: center;
+            padding: 30px;
+            margin-top: 60px;
+        }
+        
+        @media (max-width: 768px) {
+            header h1 { font-size: 1.6rem; }
+            .container { padding: 20px 15px; }
+            h2 { font-size: 1.4rem; }
+            .phase-header { flex-direction: column; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>🏭 JD Jones RAG System Implementation</h1>
+    <p class="subtitle">Complete Step-by-Step Workflow: Hierarchical Knowledge Base, Internal AI Agent & External Guided Classification System</p>
+</header>
+
+<div class="container">
+
+<div class="toc">
+    <h3>📑 Table of Contents</h3>
+    <ol>
+        <li><a href="#overview">System Architecture Overview</a></li>
+        <li><a href="#phase1">Phase 1: Data Audit & Preparation</a></li>
+        <li><a href="#phase2">Phase 2: Infrastructure Setup</a></li>
+        <li><a href="#phase3">Phase 3: Main Context Database (Company-Wide)</a></li>
+        <li><a href="#phase4">Phase 4: Level Context Databases (Department-Specific)</a></li>
+        <li><a href="#phase5">Phase 5: Access Control & Security Layer</a></li>
+        <li><a href="#phase6">Phase 6: Internal AI Agent Development</a></li>
+        <li><a href="#phase7">Phase 7: External Classification & Decision System</a></li>
+        <li><a href="#phase8">Phase 8: Testing, Deployment & Monitoring</a></li>
+        <li><a href="#appendix">Appendix: Code Templates & Configurations</a></li>
+    </ol>
+</div>
+
+<!-- ==================== OVERVIEW ==================== -->
+<section id="overview">
+<h2>System Architecture Overview</h2>
+
+<p>This implementation creates a <strong>hierarchical RAG (Retrieval-Augmented Generation) system</strong> with two distinct interfaces:</p>
+
+<table>
+    <tr>
+        <th>Component</th>
+        <th>Users</th>
+        <th>Interface Type</th>
+        <th>Purpose</th>
+    </tr>
+    <tr>
+        <td><strong>Internal AI Agent</strong></td>
+        <td>JD Jones Employees</td>
+        <td>Conversational Chatbot</td>
+        <td>Answer queries using full knowledge base with role-based access</td>
+    </tr>
+    <tr>
+        <td><strong>External Classification System</strong></td>
+        <td>Customers (B2B & B2C)</td>
+        <td>Guided Decision Tree</td>
+        <td>Route customers to answers without overwhelming open-ended chat</td>
+    </tr>
+</table>
+
+<div class="architecture-diagram">
+┌─────────────────────────────────────────────────────────────────────────────────────────┐
+│                           JD JONES KNOWLEDGE SYSTEM ARCHITECTURE                         │
+├─────────────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                          │
+│  ┌─────────────────────────────────────────────────────────────────────────────────┐    │
+│  │                        MAIN CONTEXT DATABASE (Level 0)                           │    │
+│  │   Company-wide knowledge accessible to ALL authenticated users                   │    │
+│  │   ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐              │    │
+│  │   │ Product     │ │ Company     │ │ Policies &  │ │ Technical   │              │    │
+│  │   │ Catalog     │ │ Information │ │ Procedures  │ │ Specs       │              │    │
+│  │   └─────────────┘ └─────────────┘ └─────────────┘ └─────────────┘              │    │
+│  └─────────────────────────────────────────────────────────────────────────────────┘    │
+│                                          │                                               │
+│                    ┌─────────────────────┼─────────────────────┐                        │
+│                    ▼                     ▼                     ▼                        │
+│  ┌─────────────────────┐  ┌─────────────────────┐  ┌─────────────────────┐             │
+│  │ LEVEL 1: Sales &    │  │ LEVEL 1: Production │  │ LEVEL 1: Engineering│             │
+│  │ Customer Service    │  │ & Operations        │  │ & Quality           │             │
+│  │ ─────────────────── │  │ ─────────────────── │  │ ─────────────────── │             │
+│  │ • Pricing guides    │  │ • Work instructions │  │ • Design documents  │             │
+│  │ • Customer history  │  │ • Machine manuals   │  │ • Test reports      │             │
+│  │ • Order procedures  │  │ • Safety protocols  │  │ • Material certs    │             │
+│  │ • Commission rules  │  │ • Maintenance logs  │  │ • Compliance docs   │             │
+│  └─────────────────────┘  └─────────────────────┘  └─────────────────────┘             │
+│            │                        │                        │                          │
+│            └────────────────────────┼────────────────────────┘                          │
+│                                     ▼                                                   │
+│  ┌──────────────────────────────────────────────────────────────────────────────────┐  │
+│  │                              VECTOR DATABASE                                      │  │
+│  │   ┌──────────────────┐    ┌──────────────────┐    ┌──────────────────┐          │  │
+│  │   │ ChromaDB/Pinecone│    │ Embedding Model  │    │ Metadata Store   │          │  │
+│  │   │ (Vector Store)   │    │ (OpenAI/Local)   │    │ (PostgreSQL)     │          │  │
+│  │   └──────────────────┘    └──────────────────┘    └──────────────────┘          │  │
+│  └──────────────────────────────────────────────────────────────────────────────────┘  │
+│                                     │                                                   │
+│           ┌─────────────────────────┴─────────────────────────┐                        │
+│           ▼                                                   ▼                        │
+│  ┌─────────────────────────────────┐      ┌─────────────────────────────────────┐     │
+│  │     INTERNAL AI AGENT           │      │   EXTERNAL CLASSIFICATION SYSTEM    │     │
+│  │  ───────────────────────────    │      │  ─────────────────────────────────  │     │
+│  │  • Full conversational AI       │      │  • Guided decision tree             │     │
+│  │  • Role-based access control    │      │  • Category selection cards         │     │
+│  │  • Context-aware responses      │      │  • Filtered knowledge retrieval     │     │
+│  │  • Document citations           │      │  • Escalation to human agent        │     │
+│  │                                 │      │  • NO open-ended chat               │     │
+│  │  Users: All JD Jones employees  │      │  Users: B2B & B2C customers         │     │
+│  └─────────────────────────────────┘      └─────────────────────────────────────┘     │
+│                                                                                         │
+└─────────────────────────────────────────────────────────────────────────────────────────┘
+</div>
+
+<h3>Technology Stack</h3>
+
+<div style="margin: 15px 0;">
+    <span class="tech-badge">Python 3.11+</span>
+    <span class="tech-badge">LangChain</span>
+    <span class="tech-badge">ChromaDB / Pinecone</span>
+    <span class="tech-badge">OpenAI GPT-4 / Claude API</span>
+    <span class="tech-badge">FastAPI</span>
+    <span class="tech-badge">PostgreSQL</span>
+    <span class="tech-badge">Redis</span>
+    <span class="tech-badge">React/Next.js</span>
+    <span class="tech-badge">Docker</span>
+    <span class="tech-badge">AWS/Azure</span>
+</div>
+
+</section>
+
+<!-- ==================== PHASE 1 ==================== -->
+<section id="phase1">
+<div class="phase-header">
+    <div class="phase-num">1</div>
+    <h2>Data Audit & Preparation</h2>
+</div>
+
+<p><strong>Duration:</strong> 2-3 weeks | <strong>Team:</strong> Data Engineer, Domain Expert, IT Admin</p>
+
+<div class="step-box">
+    <h4><span class="step-num">1.1</span> Inventory All Knowledge Sources</h4>
+    
+    <div class="action-box">
+        <h5>✅ Action: Create Data Inventory Spreadsheet</h5>
+        <p>Document every knowledge source in the organization:</p>
+    </div>
+    
+    <table>
+        <tr>
+            <th>Source Type</th>
+            <th>Location</th>
+            <th>Format</th>
+            <th>Access Level</th>
+            <th>Update Frequency</th>
+        </tr>
+        <tr>
+            <td>Product Catalog</td>
+            <td>ERP System / SharePoint</td>
+            <td>PDF, Excel</td>
+            <td>Company-wide</td>
+            <td>Weekly</td>
+        </tr>
+        <tr>
+            <td>Technical Specifications</td>
+            <td>Engineering Drive</td>
+            <td>PDF, CAD metadata</td>
+            <td>Engineering + Sales</td>
+            <td>Per product change</td>
+        </tr>
+        <tr>
+            <td>Pricing & Quotes</td>
+            <td>CRM / Sales Drive</td>
+            <td>Excel, PDF</td>
+            <td>Sales only</td>
+            <td>Quarterly</td>
+        </tr>
+        <tr>
+            <td>Work Instructions</td>
+            <td>Production SharePoint</td>
+            <td>Word, PDF</td>
+            <td>Production only</td>
+            <td>Monthly</td>
+        </tr>
+        <tr>
+            <td>Customer FAQs</td>
+            <td>Website / Helpdesk</td>
+            <td>HTML, Markdown</td>
+            <td>Public</td>
+            <td>As needed</td>
+        </tr>
+    </table>
+</div>
+
+<div class="step-box">
+    <h4><span class="step-num">1.2</span> Define Access Control Hierarchy</h4>
+    
+    <div class="action-box">
+        <h5>✅ Action: Map Organizational Roles to Data Access</h5>
+    </div>
+    
+    <pre><code># access_control_matrix.yaml
+
+roles:
+  # Level 0: Company-wide (visible to all authenticated users)
+  company_wide:
+    - product_catalog
+    - company_policies
+    - safety_guidelines
+    - general_procedures
+    - public_technical_specs
+
+  # Level 1: Department-specific
+  sales:
+    inherits: company_wide
+    additional:
+      - pricing_guides
+      - customer_database
+      - commission_structures
+      - competitor_analysis
+      - quote_templates
+  
+  production:
+    inherits: company_wide
+    additional:
+      - work_instructions
+      - machine_manuals
+      - maintenance_schedules
+      - quality_checklists
+      - scrap_reports
+  
+  engineering:
+    inherits: company_wide
+    additional:
+      - design_documents
+      - material_certificates
+      - test_reports
+      - compliance_documents
+      - r_and_d_notes
+  
+  management:
+    inherits: [sales, production, engineering]
+    additional:
+      - financial_reports
+      - strategic_plans
+      - hr_policies
+
+  # External users (customers)
+  external_customer:
+    - product_catalog_public
+    - faq_database
+    - order_tracking_info
+    - general_specifications</code></pre>
+</div>
+
+<div class="step-box">
+    <h4><span class="step-num">1.3</span> Clean and Standardize Documents</h4>
+    
+    <div class="action-box">
+        <h5>✅ Action: Run Document Processing Pipeline</h5>
+    </div>
+    
+    <pre><code># document_processor.py
+
+import os
+from pathlib import Path
+from typing import List, Dict
+import fitz  # PyMuPDF for PDFs
+from docx import Document
+import pandas as pd
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+
+class DocumentProcessor:
+    def __init__(self, source_dir: str, output_dir: str):
+        self.source_dir = Path(source_dir)
+        self.output_dir = Path(output_dir)
+        self.text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=1000,
+            chunk_overlap=200,
+            separators=["\n\n", "\n", ". ", " ", ""]
+        )
+    
+    def process_pdf(self, file_path: Path) -> List[Dict]:
+        """Extract text from PDF with metadata"""
+        doc = fitz.open(file_path)
+        chunks = []
+        
+        full_text = ""
+        for page_num, page in enumerate(doc):
+            full_text += page.get_text()
+        
+        # Split into chunks
+        text_chunks = self.text_splitter.split_text(full_text)
+        
+        for i, chunk in enumerate(text_chunks):
+            chunks.append({
+                "content": chunk,
+                "metadata": {
+                    "source": str(file_path),
+                    "file_type": "pdf",
+                    "chunk_index": i,
+                    "total_chunks": len(text_chunks),
+                    "file_name": file_path.name
+                }
+            })
+        
+        return chunks
+    
+    def process_docx(self, file_path: Path) -> List[Dict]:
+        """Extract text from Word document"""
+        doc = Document(file_path)
+        full_text = "\n".join([para.text for para in doc.paragraphs])
+        
+        text_chunks = self.text_splitter.split_text(full_text)
+        
+        chunks = []
+        for i, chunk in enumerate(text_chunks):
+            chunks.append({
+                "content": chunk,
+                "metadata": {
+                    "source": str(file_path),
+                    "file_type": "docx",
+                    "chunk_index": i,
+                    "total_chunks": len(text_chunks),
+                    "file_name": file_path.name
+                }
+            })
+        
+        return chunks
+    
+    def process_directory(self, 
+                          directory: Path, 
+                          access_level: str,
+                          department: str) -> List[Dict]:
+        """Process all documents in directory with access metadata"""
+        all_chunks = []
+        
+        for file_path in directory.rglob("*"):
+            if file_path.suffix.lower() == ".pdf":
+                chunks = self.process_pdf(file_path)
+            elif file_path.suffix.lower() in [".docx", ".doc"]:
+                chunks = self.process_docx(file_path)
+            else:
+                continue
+            
+            # Add access control metadata to each chunk
+            for chunk in chunks:
+                chunk["metadata"]["access_level"] = access_level
+                chunk["metadata"]["department"] = department
+                chunk["metadata"]["processed_date"] = datetime.now().isoformat()
+            
+            all_chunks.extend(chunks)
+        
+        return all_chunks
+
+# Usage
+processor = DocumentProcessor("./raw_documents", "./processed")
+
+# Process each department's documents
+sales_docs = processor.process_directory(
+    Path("./raw_documents/sales"),
+    access_level="level_1",
+    department="sales"
+)
+
+production_docs = processor.process_directory(
+    Path("./raw_documents/production"),
+    access_level="level_1", 
+    department="production"
+)
+
+company_wide_docs = processor.process_directory(
+    Path("./raw_documents/company_wide"),
+    access_level="level_0",
+    department="all"
+)</code></pre>
+</div>
+
+<div class="step-box">
+    <h4><span class="step-num">1.4</span> Create Metadata Schema</h4>
+    
+    <div class="action-box">
+        <h5>✅ Action: Define Metadata Structure for All Documents</h5>
+    </div>
+    
+    <pre><code># metadata_schema.py
+
+from pydantic import BaseModel
+from typing import Optional, List
+from datetime import datetime
+from enum import Enum
+
+class AccessLevel(str, Enum):
+    LEVEL_0_PUBLIC = "level_0_public"      # External customers
+    LEVEL_0_INTERNAL = "level_0_internal"  # All employees
+    LEVEL_1_SALES = "level_1_sales"
+    LEVEL_1_PRODUCTION = "level_1_production"
+    LEVEL_1_ENGINEERING = "level_1_engineering"
+    LEVEL_2_MANAGEMENT = "level_2_management"
+    LEVEL_3_CONFIDENTIAL = "level_3_confidential"
+
+class DocumentMetadata(BaseModel):
+    # Identification
+    document_id: str
+    file_name: str
+    source_path: str
+    
+    # Access Control
+    access_level: AccessLevel
+    departments: List[str]
+    
+    # Content Classification
+    document_type: str  # e.g., "product_spec", "work_instruction", "policy"
+    product_category: Optional[str] = None
+    keywords: List[str] = []
+    
+    # Versioning
+    version: str = "1.0"
+    created_date: datetime
+    modified_date: datetime
+    author: Optional[str] = None
+    
+    # RAG-specific
+    chunk_index: int
+    total_chunks: int
+    embedding_model: str = "text-embedding-3-small"
+
+class ChunkRecord(BaseModel):
+    content: str
+    metadata: DocumentMetadata
+    embedding: Optional[List[float]] = None</code></pre>
+</div>
+
+<div class="deliverable">
+    <h5>📦 Phase 1 Deliverables</h5>
+    <ul class="checklist">
+        <li>Complete data inventory spreadsheet with all knowledge sources</li>
+        <li>Access control matrix mapping roles to data permissions</li>
+        <li>Processed document chunks with standardized metadata</li>
+        <li>Metadata schema definition (Pydantic models)</li>
+        <li>Document processing pipeline scripts</li>
+    </ul>
+</div>
+
+</section>
+
+<!-- ==================== PHASE 2 ==================== -->
+<section id="phase2">
+<div class="phase-header">
+    <div class="phase-num">2</div>
+    <h2>Infrastructure Setup</h2>
+</div>
+
+<p><strong>Duration:</strong> 1-2 weeks | <strong>Team:</strong> DevOps, Backend Developer</p>
+
+<div class="step-box">
+    <h4><span class="step-num">2.1</span> Set Up Development Environment</h4>
+    
+    <div class="action-box">
+        <h5>✅ Action: Create Project Structure</h5>
+    </div>
+    
+    <div class="file-structure">
+jd_jones_rag/
+├── docker-compose.yml
+├── .env.example
+├── requirements.txt
+├── README.md
+│
+├── src/
+│   ├── __init__.py
+│   ├── config/
+│   │   ├── __init__.py
+│   │   ├── settings.py
+│   │   └── access_control.yaml
+│   │
+│   ├── data_ingestion/
+│   │   ├── __init__.py
+│   │   ├── document_processor.py
+│   │   ├── embedding_generator.py
+│   │   └── vector_store.py
+│   │
+│   ├── knowledge_base/
+│   │   ├── __init__.py
+│   │   ├── main_context.py
+│   │   ├── level_contexts.py
+│   │   └── retriever.py
+│   │
+│   ├── agents/
+│   │   ├── __init__.py
+│   │   ├── internal_agent.py
+│   │   └── prompts/
+│   │       └── internal_system_prompt.txt
+│   │
+│   ├── external_system/
+│   │   ├── __init__.py
+│   │   ├── classifier.py
+│   │   ├── decision_tree.py
+│   │   └── response_generator.py
+│   │
+│   ├── auth/
+│   │   ├── __init__.py
+│   │   ├── authentication.py
+│   │   └── authorization.py
+│   │
+│   └── api/
+│       ├── __init__.py
+│       ├── main.py
+│       ├── routers/
+│       │   ├── internal_chat.py
+│       │   ├── external_portal.py
+│       │   └── admin.py
+│       └── schemas/
+│           └── requests.py
+│
+├── frontend/
+│   ├── internal-portal/      # Employee chatbot UI
+│   └── external-portal/      # Customer decision tree UI
+│
+├── scripts/
+│   ├── ingest_documents.py
+│   ├── update_embeddings.py
+│   └── sync_database.py
+│
+└── tests/
+    ├── test_ingestion.py
+    ├── test_retrieval.py
+    └── test_agents.py
+    </div>
+</div>
+
+<div class="step-box">
+    <h4><span class="step-num">2.2</span> Configure Docker Environment</h4>
+    
+    <div class="action-box">
+        <h5>✅ Action: Create docker-compose.yml</h5>
+    </div>
+    
+    <pre><code># docker-compose.yml
+
+version: '3.8'
+
+services:
+  # Main API Server
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://user:pass@postgres:5432/jd_jones_rag
+      - REDIS_URL=redis://redis:6379
+      - CHROMA_HOST=chromadb
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    depends_on:
+      - postgres
+      - redis
+      - chromadb
+    volumes:
+      - ./src:/app/src
+      - ./documents:/app/documents
+
+  # PostgreSQL for metadata and user management
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: jd_jones_rag
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  # Redis for caching and session management
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  # ChromaDB for vector storage
+  chromadb:
+    image: chromadb/chroma:latest
+    ports:
+      - "8001:8000"
+    volumes:
+      - chroma_data:/chroma/chroma
+    environment:
+      - ANONYMIZED_TELEMETRY=False
+
+  # Internal Portal Frontend
+  internal-frontend:
+    build: ./frontend/internal-portal
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+
+  # External Portal Frontend
+  external-frontend:
+    build: ./frontend/external-portal
+    ports:
+      - "3001:3000"
+    depends_on:
+      - api
+
+volumes:
+  postgres_data:
+  redis_data:
+  chroma_data:</code></pre>
+</div>
+
+<div class="step-box">
+    <h4><span class="step-num">2.3</span> Install Dependencies</h4>
+    
+    <div class="action-box">
+        <h5>✅ Action: Create requirements.txt</h5>
+    </div>
+    
+    <pre><code># requirements.txt
+
+# Core Framework
+fastapi==0.109.0
+uvicorn==0.27.0
+pydantic==2.5.3
+python-dotenv==1.0.0
+
+# LangChain & AI
+langchain==0.1.4
+langchain-openai==0.0.5
+langchain-community==0.0.16
+openai==1.10.0
+tiktoken==0.5.2
+
+# Vector Database
+chromadb==0.4.22
+# pinecone-client==3.0.0  # Alternative
+
+# Embeddings
+sentence-transformers==2.2.2  # For local embeddings
+
+# Document Processing
+PyMuPDF==1.23.8
+python-docx==1.1.0
+pandas==2.1.4
+openpyxl==3.1.2
+unstructured==0.12.0
+
+# Database
+sqlalchemy==2.0.25
+asyncpg==0.29.0
+psycopg2-binary==2.9.9
+redis==5.0.1
+
+# Authentication
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+python-multipart==0.0.6
+
+# Utilities
+httpx==0.26.0
+tenacity==8.2.3
+structlog==24.1.0</code></pre>
+
+    <div class="command-box">
+        <span class="comment"># Install dependencies</span><br>
+        <span class="cmd">pip install -r requirements.txt</span><br><br>
+        <span class="comment"># Or with Docker</span><br>
+        <span class="cmd">docker-compose up -d</span>
+    </div>
+</div>
+
+<div class="step-box">
+    <h4><span class="step-num">2.4</span> Configure Environment Variables</h4>
+    
+    <div class="action-box">
+        <h5>✅ Action: Create .env file</h5>
+    </div>
+    
+    <pre><code># .env
+
+# API Keys
+OPENAI_API_KEY=sk-your-openai-key
+ANTHROPIC_API_KEY=sk-ant-your-claude-key  # Optional
+
+# Database
+DATABASE_URL=postgresql://user:password@localhost:5432/jd_jones_rag
+REDIS_URL=redis://localhost:6379
+
+# Vector Store
+CHROMA_HOST=localhost
+CHROMA_PORT=8001
+# PINECONE_API_KEY=your-pinecone-key  # If using Pinecone
+# PINECONE_ENVIRONMENT=us-east-1
+
+# Authentication
+SECRET_KEY=your-super-secret-key-change-in-production
+ACCESS_TOKEN_EXPIRE_MINUTES=480
+ALGORITHM=HS256
+
+# Embedding Model
+EMBEDDING_MODEL=text-embedding-3-small
+# EMBEDDING_MODEL=all-MiniLM-L6-v2  # For local embeddings
+
+# LLM Settings
+LLM_MODEL=gpt-4-turbo-preview
+LLM_TEMPERATURE=0.1
+MAX_TOKENS=2000
+
+# Application
+DEBUG=true
+LOG_LEVEL=INFO
+CORS_ORIGINS=["http://localhost:3000","http://localhost:3001"]</code></pre>
+</div>
+
+<div class="deliverable">
+    <h5>📦 Phase 2 Deliverables</h5>
+    <ul class="checklist">
+        <li>Complete project directory structure</li>
+        <li>Docker Compose configuration with all services</li>
+        <li>Requirements.txt with all dependencies</li>
+        <li>Environment configuration template</li>
+        <li>Running development environment (docker-compose up)</li>
+    </ul>
+</div>
+
+</section>
+
+<!-- ==================== PHASE 3 ==================== -->
+<section id="phase3">
+<div class="phase-header">
+    <div class="phase-num">3</div>
+    <h2>Main Context Database (Company-Wide)</h2>
+</div>
+
+<p><strong>Duration:</strong> 2 weeks | <strong>Team:</strong> Backend Developer, Data Engineer</p>
+
+<div class="step-box">
+    <h4><span class="step-num">3.1</span> Create Vector Store Collections</h4>
+    
+    <div class="action-box">
+        <h5>✅ Action: Initialize ChromaDB Collections with Hierarchy</h5>
+    </div>
+    
+    <pre><code># src/knowledge_base/main_context.py
+
+import chromadb
+from chromadb.config import Settings
+from langchain_openai import OpenAIEmbeddings
+from langchain_community.vectorstores import Chroma
+from typing import List, Dict, Optional
+import os
+
+class MainContextDatabase:
+    """
+    Level 0: Company-wide knowledge base
+    Accessible to ALL authenticated users (internal and external)
+    """
+    
+    def __init__(self):
+        self.chroma_client = chromadb.HttpClient(
+            host=os.getenv("CHROMA_HOST", "localhost"),
+            port=int(os.getenv("CHROMA_PORT", 8001))
+        )
+        
+        self.embeddings = OpenAIEmbeddings(
+            model=os.getenv("EMBEDDING_MODEL", "text-embedding-3-small")
+        )
+        
+        # Initialize main collections
+        self._init_collections()
+    
+    def _init_collections(self):
+        """Create hierarchical collections"""
+        
+        # Main company-wide collection (Level 0)
+        self.main_collection = self.chroma_client.get_or_create_collection(
+            name="jd_jones_main",
+            metadata={
+                "description": "Company-wide knowledge accessible to all",
+                "access_level": "level_0",
+                "hnsw:space": "cosine"
+            }
+        )
+        
+        # Public subset for external customers
+        self.public_collection = self.chroma_client.get_or_create_collection(
+            name="jd_jones_public",
+            metadata={
+                "description": "Public knowledge for external customers",
+                "access_level": "level_0_public",
+                "hnsw:space": "cosine"
+            }
+        )
+    
+    def add_documents(self, 
+                      documents: List[Dict],
+                      collection_name: str = "jd_jones_main") -> int:
+        """
+        Add documents to the main context database
+        
+        Args:
+            documents: List of {"content": str, "metadata": dict}
+            collection_name: Target collection
+        
+        Returns:
+            Number of documents added
+        """
+        collection = self.chroma_client.get_collection(collection_name)
+        
+        ids = []
+        contents = []
+        metadatas = []
+        embeddings = []
+        
+        for i, doc in enumerate(documents):
+            doc_id = f"{collection_name}_{doc['metadata'].get('document_id', i)}_{doc['metadata'].get('chunk_index', 0)}"
+            ids.append(doc_id)
+            contents.append(doc["content"])
+            metadatas.append(doc["metadata"])
+            
+            # Generate embedding
+            embedding = self.embeddings.embed_query(doc["content"])
+            embeddings.append(embedding)
+        
+        # Add to collection
+        collection.add(
+            ids=ids,
+            documents=contents,
+            metadatas=metadatas,
+            embeddings=embeddings
+        )
+        
+        return len(documents)
+    
+    def query(self,
+              query_text: str,
+              n_results: int = 5,
+              access_level: str = "level_0",
+              filter_metadata: Optional[Dict] = None) -> List[Dict]:
+        """
+        Query the main context database with access control
+        
+        Args:
+            query_text: User's query
+            n_results: Number of results to return
+            access_level: User's access level
+            filter_metadata: Additional metadata filters
+        
+        Returns:
+            List of relevant document chunks with metadata
+        """
+        # Select collection based on access level
+        if access_level == "level_0_public":
+            collection = self.public_collection
+        else:
+            collection = self.main_collection
+        
+        # Build where clause for filtering
+        where_clause = {}
+        if filter_metadata:
+            where_clause.update(filter_metadata)
+        
+        # Generate query embedding
+        query_embedding = self.embeddings.embed_query(query_text)
+        
+        # Query collection
+        results = collection.query(
+            query_embeddings=[query_embedding],
+            n_results=n_results,
+            where=where_clause if where_clause else None,
+            include=["documents", "metadatas", "distances"]
+        )
+        
+        # Format results
+        formatted_results = []
+        for i in range(len(results["ids"][0])):
+            formatted_results.append({
+                "id": results["ids"][0][i],
+                "content": results["documents"][0][i],
+                "metadata": results["metadatas"][0][i],
+                "relevance_score": 1 - results["distances"][0][i]  # Convert distance to similarity
+            })
+        
+        return formatted_results
+
+
+# Initialization script
+def initialize_main_database():
+    """One-time setup of main context database"""
+    db = MainContextDatabase()
+    
+    # Load and process company-wide documents
+    from src.data_ingestion.document_processor import DocumentProcessor
+    
+    processor = DocumentProcessor()
+    
+    # Process product catalog (accessible to all)
+    product_docs = processor.process_directory(
+        "./documents/product_catalog",
+        access_level="level_0",
+        department="all"
+    )
+    db.add_documents(product_docs, "jd_jones_main")
+    
+    # Also add to public collection for external access
+    public_product_docs = [
+        doc for doc in product_docs 
+        if doc["metadata"].get("public", True)
+    ]
+    db.add_documents(public_product_docs, "jd_jones_public")
+    
+    # Process company policies
+    policy_docs = processor.process_directory(
+        "./documents/policies",
+        access_level="level_0",
+        department="all"
+    )
+    db.add_documents(policy_docs, "jd_jones_main")
+    
+    print(f"Main database initialized with {len(product_docs) + len(policy_docs)} documents")
+    
+    return db</code></pre>
+</div>
+
+<div class="step-box">
+    <h4><span class="step-num">3.2</span> Create Embedding Pipeline</h4>
+    
+    <div class="action-box">
+        <h5>✅ Action: Build Scalable Embedding Generator</h5>
+    </div>
+    
+    <pre><code># src/data_ingestion/embedding_generator.py
+
+from langchain_openai import OpenAIEmbeddings
+from langchain_community.embeddings import HuggingFaceEmbeddings
+from typing import List, Dict, Union
+import asyncio
+from tenacity import retry, stop_after_attempt, wait_exponential
+import numpy as np
+
+class EmbeddingGenerator:
+    """Generate embeddings for document chunks"""
+    
+    def __init__(self, model_type: str = "openai"):
+        """
+        Args:
+            model_type: "openai" or "local"
+        """
+        if model_type == "openai":
+            self.embeddings = OpenAIEmbeddings(
+                model="text-embedding-3-small",
+                chunk_size=1000  # Process in batches
+            )
+        else:
+            # Local model for cost savings / offline use
+            self.embeddings = HuggingFaceEmbeddings(
+                model_name="sentence-transformers/all-MiniLM-L6-v2",
+                model_kwargs={'device': 'cpu'}
+            )
+        
+        self.model_type = model_type
+    
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=1, min=4, max=60)
+    )
+    def generate_embedding(self, text: str) -> List[float]:
+        """Generate embedding for single text"""
+        return self.embeddings.embed_query(text)
+    
+    def generate_embeddings_batch(self, 
+                                   texts: List[str],
+                                   batch_size: int = 100) -> List[List[float]]:
+        """
+        Generate embeddings for multiple texts in batches
+        
+        Args:
+            texts: List of text strings
+            batch_size: Number of texts per API call
+        
+        Returns:
+            List of embedding vectors
+        """
+        all_embeddings = []
+        
+        for i in range(0, len(texts), batch_size):
+            batch = texts[i:i + batch_size]
+            batch_embeddings = self.embeddings.embed_documents(batch)
+            all_embeddings.extend(batch_embeddings)
+            
+            # Progress logging
+            print(f"Processed {min(i + batch_size, len(texts))}/{len(texts)} texts")
+        
+        return all_embeddings
+    
+    def process_documents(self, 
+                          documents: List[Dict]) -> List[Dict]:
+        """
+        Add embeddings to document chunks
+        
+        Args:
+            documents: List of {"content": str, "metadata": dict}
+        
+        Returns:
+            Documents with added "embedding" field
+        """
+        texts = [doc["content"] for doc in documents]
+        embeddings = self.generate_embeddings_batch(texts)
+        
+        for doc, embedding in zip(documents, embeddings):
+            doc["embedding"] = embedding
+        
+        return documents</code></pre>
+</div>
+
+<div class="step-box">
+    <h4><span class="step-num">3.3</span> Create Document Ingestion Script</h4>
+    
+    <div class="action-box">
+        <h5>✅ Action: Build Main Ingestion Pipeline</h5>
+    </div>
+    
+    <pre><code># scripts/ingest_documents.py
+
+#!/usr/bin/env python3
+"""
+Document Ingestion Script for JD Jones RAG System
+Run: python scripts/ingest_documents.py --source ./documents --level main
+"""
+
+import argparse
+import os
+from pathlib import Path
+from datetime import datetime
+import json
+
+from src.data_ingestion.document_processor import DocumentProcessor
+from src.data_ingestion.embedding_generator import EmbeddingGenerator
+from src.knowledge_base.main_context import MainContextDatabase
+from src.knowledge_base.level_contexts import LevelContextDatabase
+
+def ingest_main_context(source_dir: str):
+    """Ingest documents into main (company-wide) context"""
+    print("=" * 60)
+    print("INGESTING MAIN CONTEXT (LEVEL 0) DOCUMENTS")
+    print("=" * 60)
+    
+    processor = DocumentProcessor()
+    embedder = EmbeddingGenerator(model_type="openai")
+    db = MainContextDatabase()
+    
+    # Define main context document sources
+    main_sources = [
+        {
+            "path": f"{source_dir}/product_catalog",
+            "access_level": "level_0",
+            "department": "all",
+            "public": True  # Also available to external customers
+        },
+        {
+            "path": f"{source_dir}/company_policies",
+            "access_level": "level_0",
+            "department": "all",
+            "public": False
+        },
+        {
+            "path": f"{source_dir}/technical_specifications",
+            "access_level": "level_0",
+            "department": "all",
+            "public": True
+        },
+        {
+            "path": f"{source_dir}/safety_guidelines",
+            "access_level": "level_0",
+            "department": "all",
+            "public": False
+        },
+        {
+            "path": f"{source_dir}/faqs",
+            "access_level": "level_0",
+            "department": "all",
+            "public": True
+        }
+    ]
+    
+    total_docs = 0
+    public_docs = 0
+    
+    for source in main_sources:
+        if not Path(source["path"]).exists():
+            print(f"Skipping non-existent path: {source['path']}")
+            continue
+        
+        print(f"\nProcessing: {source['path']}")
+        
+        # Process documents
+        documents = processor.process_directory(
+            Path(source["path"]),
+            access_level=source["access_level"],
+            department=source["department"]
+        )
+        
+        # Add public flag
+        for doc in documents:
+            doc["metadata"]["public"] = source["public"]
+        
+        # Generate embeddings
+        documents = embedder.process_documents(documents)
+        
+        # Add to main collection
+        db.add_documents(documents, "jd_jones_main")
+        total_docs += len(documents)
+        
+        # Add public documents to public collection
+        if source["public"]:
+            db.add_documents(documents, "jd_jones_public")
+            public_docs += len(documents)
+        
+        print(f"  Added {len(documents)} chunks")
+    
+    print(f"\n✅ Main context ingestion complete!")
+    print(f"   Total internal documents: {total_docs}")
+    print(f"   Total public documents: {public_docs}")
+    
+    return total_docs
+
+def main():
+    parser = argparse.ArgumentParser(description="Ingest documents into RAG system")
+    parser.add_argument("--source", required=True, help="Source directory for documents")
+    parser.add_argument("--level", choices=["main", "sales", "production", "engineering", "all"],
+                        default="all", help="Which context level to ingest")
+    
+    args = parser.parse_args()
+    
+    if args.level in ["main", "all"]:
+        ingest_main_context(args.source)
+    
+    if args.level in ["sales", "all"]:
+        # Will be implemented in Phase 4
+        pass
+    
+    if args.level in ["production", "all"]:
+        # Will be implemented in Phase 4
+        pass
+    
+    if args.level in ["engineering", "all"]:
+        # Will be implemented in Phase 4
+        pass
+
+if __name__ == "__main__":
+    main()</code></pre>
+    
+    <div class="command-box">
+        <span class="comment"># Run the ingestion</span><br>
+        <span class="cmd">python scripts/ingest_documents.py --source ./documents --level main</span>
+    </div>
+</div>
+
+<div class="deliverable">
+    <h5>📦 Phase 3 Deliverables</h5>
+    <ul class="checklist">
+        <li>MainContextDatabase class with CRUD operations</li>
+        <li>ChromaDB collections for main and public data</li>
+        <li>Embedding generation pipeline</li>
+        <li>Document ingestion script</li>
+        <li>Populated Level 0 knowledge base</li>
+    </ul>
+</div>
+
+</section>
+
+<!-- ==================== PHASE 4 ==================== -->
+<section id="phase4">
+<div class="phase-header">
+    <div class="phase-num">4</div>
+    <h2>Level Context Databases (Department-Specific)</h2>
+</div>
+
+<p><strong>Duration:</strong> 2 weeks | <strong>Team:</strong> Backend Developer, Department Liaisons</p>
+
+<div class="step-box">
+    <h4><span class="step-num">4.1</span> Create Department-Specific Collections</h4>
+    
+    <div class="action-box">
+        <h5>✅ Action: Build Level Context Database Manager</h5>
+    </div>
+    
+    <pre><code># src/knowledge_base/level_contexts.py
+
+import chromadb
+from langchain_openai import OpenAIEmbeddings
+from typing import List, Dict, Optional, Set
+from enum import Enum
+import os
+
+class Department(str, Enum):
+    SALES = "sales"
+    PRODUCTION = "production"
+    ENGINEERING = "engineering"
+    MANAGEMENT = "management"
+    CUSTOMER_SERVICE = "customer_service"
+
+class LevelContextDatabase:
+    """
+    Level 1+: Department-specific knowledge bases
+    Each department has its own collection with restricted access
+    """
+    
+    def __init__(self):
+        self.chroma_client = chromadb.HttpClient(
+            host=os.getenv("CHROMA_HOST", "localhost"),
+            port=int(os.getenv("CHROMA_PORT", 8001))
+        )
+        
+        self.embeddings = OpenAIEmbeddings(
+            model=os.getenv("EMBEDDING_MODEL", "text-embedding-3-small")
+        )
+        
+        # Initialize department collections
+        self.collections = {}
+        self._init_department_collections()
+    
+    def _init_department_collections(self):
+        """Create a collection for each department"""
+        
+        department_configs = {
+            Department.SALES: {
+                "description": "Sales team knowledge - pricing, customers, commissions",
+                "access_roles": ["sales", "sales_manager", "management"],
+                "document_types": [
+                    "pricing_guide", "customer_history", "commission_rules",
+                    "competitor_analysis", "quote_templates", "sales_playbook"
+                ]
+            },
+            Department.PRODUCTION: {
+                "description": "Production team knowledge - operations, machines, safety",
+                "access_roles": ["production", "production_supervisor", "management"],
+                "document_types": [
+                    "work_instruction", "machine_manual", "safety_protocol",
+                    "maintenance_schedule", "quality_checklist", "scrap_report"
+                ]
+            },
+            Department.ENGINEERING: {
+                "description": "Engineering team knowledge - designs, tests, compliance",
+                "access_roles": ["engineering", "quality", "management"],
+                "document_types": [
+                    "design_document", "material_certificate", "test_report",
+                    "compliance_doc", "r_and_d_notes", "specification_sheet"
+                ]
+            },
+            Department.CUSTOMER_SERVICE: {
+                "description": "Customer service knowledge - support, orders, escalations",
+                "access_roles": ["customer_service", "sales", "management"],
+                "document_types": [
+                    "support_script", "escalation_procedure", "order_process",
+                    "complaint_handling", "return_policy", "warranty_info"
+                ]
+            }
+        }
+        
+        for dept, config in department_configs.items():
+            collection = self.chroma_client.get_or_create_collection(
+                name=f"jd_jones_{dept.value}",
+                metadata={
+                    "description": config["description"],
+                    "access_roles": ",".join(config["access_roles"]),
+                    "document_types": ",".join(config["document_types"]),
+                    "hnsw:space": "cosine"
+                }
+            )
+            self.collections[dept] = collection
+    
+    def add_department_documents(self,
+                                  department: Department,
+                                  documents: List[Dict]) -> int:
+        """Add documents to a specific department's collection"""
+        
+        if department not in self.collections:
+            raise ValueError(f"Unknown department: {department}")
+        
+        collection = self.collections[department]
+        
+        ids = []
+        contents = []
+        metadatas = []
+        embeddings = []
+        
+        for i, doc in enumerate(documents):
+            doc_id = f"{department.value}_{doc['metadata'].get('document_id', i)}_{doc['metadata'].get('chunk_index', 0)}"
+            ids.append(doc_id)
+            contents.append(doc["content"])
+            
+            # Ensure department is in metadata
+            metadata = doc["metadata"].copy()
+            metadata["department"] = department.value
+            metadatas.append(metadata)
+            
+            # Generate or use existing embedding
+            if "embedding" in doc:
+                embeddings.append(doc["embedding"])
+            else:
+                embedding = self.embeddings.embed_query(doc["content"])
+                embeddings.append(embedding)
+        
+        collection.add(
+            ids=ids,
+            documents=contents,
+            metadatas=metadatas,
+            embeddings=embeddings
+        )
+        
+        return len(documents)
+    
+    def query_department(self,
+                         department: Department,
+                         query_text: str,
+                         n_results: int = 5,
+                         document_type: Optional[str] = None) -> List[Dict]:
+        """Query a specific department's knowledge base"""
+        
+        if department not in self.collections:
+            raise ValueError(f"Unknown department: {department}")
+        
+        collection = self.collections[department]
+        
+        # Build filter
+        where_clause = {}
+        if document_type:
+            where_clause["document_type"] = document_type
+        
+        # Generate query embedding
+        query_embedding = self.embeddings.embed_query(query_text)
+        
+        # Query
+        results = collection.query(
+            query_embeddings=[query_embedding],
+            n_results=n_results,
+            where=where_clause if where_clause else None,
+            include=["documents", "metadatas", "distances"]
+        )
+        
+        # Format results
+        formatted_results = []
+        for i in range(len(results["ids"][0])):
+            formatted_results.append({
+                "id": results["ids"][0][i],
+                "content": results["documents"][0][i],
+                "metadata": results["metadatas"][0][i],
+                "relevance_score": 1 - results["distances"][0][i],
+                "department": department.value
+            })
+        
+        return formatted_results
+    
+    def query_multi_department(self,
+                                query_text: str,
+                                departments: List[Department],
+                                n_results_per_dept: int = 3) -> List[Dict]:
+        """Query multiple departments and merge results"""
+        
+        all_results = []
+        
+        for dept in departments:
+            dept_results = self.query_department(dept, query_text, n_results_per_dept)
+            all_results.extend(dept_results)
+        
+        # Sort by relevance score
+        all_results.sort(key=lambda x: x["relevance_score"], reverse=True)
+        
+        return all_results</code></pre>
+</div>
+
+<div class="step-box">
+    <h4><span class="step-num">4.2</span> Create Unified Retriever with Access Control</h4>
+    
+    <div class="action-box">
+        <h5>✅ Action: Build Access-Aware Retriever</h5>
+    </div>
+    
+    <pre><code># src/knowledge_base/retriever.py
+
+from typing import List, Dict, Set, Optional
+from src.knowledge_base.main_context import MainContextDatabase
+from src.knowledge_base.level_contexts import LevelContextDatabase, Department
+
+class HierarchicalRetriever:
+    """
+    Unified retriever that respects access control hierarchy
+    
+    Retrieval Flow:
+    1. Always query Level 0 (main context)
+    2. Query Level 1 collections based on user's department access
+    3. Merge and re-rank results
+    4. Apply any additional access filters
+    """
+    
+    def __init__(self):
+        self.main_db = MainContextDatabase()
+        self.level_db = LevelContextDatabase()
+        
+        # Define role-to-department mapping
+        self.role_access = {
+            "sales_rep": [Department.SALES],
+            "sales_manager": [Department.SALES],
+            "production_worker": [Department.PRODUCTION],
+            "production_supervisor": [Department.PRODUCTION],
+            "engineer": [Department.ENGINEERING],
+            "quality_engineer": [Department.ENGINEERING],
+            "customer_service": [Department.CUSTOMER_SERVICE, Department.SALES],
+            "manager": [Department.SALES, Department.PRODUCTION, Department.ENGINEERING],
+            "executive": [Department.SALES, Department.PRODUCTION, Department.ENGINEERING, Department.CUSTOMER_SERVICE],
+            "external_customer": []  # No Level 1 access
+        }
+    
+    def get_accessible_departments(self, user_role: str) -> List[Department]:
+        """Get list of departments user can access"""
+        return self.role_access.get(user_role, [])
+    
+    def retrieve(self,
+                 query: str,
+                 user_role: str,
+                 user_department: Optional[str] = None,
+                 n_results: int = 10,
+                 include_public_only: bool = False) -> Dict:
+        """
+        Retrieve relevant documents respecting user access level
+        
+        Args:
+            query: User's query
+            user_role: User's role (e.g., "sales_rep", "engineer")
+            user_department: User's primary department
+            n_results: Total number of results to return
+            include_public_only: If True, only return public docs (for external users)
+        
+        Returns:
+            {
+                "main_context": [...],  # Level 0 results
+                "department_context": [...],  # Level 1 results
+                "all_results": [...],  # Merged and ranked
+                "access_level": "internal" | "external"
+            }
+        """
+        results = {
+            "main_context": [],
+            "department_context": [],
+            "all_results": [],
+            "access_level": "external" if include_public_only else "internal"
+        }
+        
+        # Step 1: Query Level 0 (main context)
+        if include_public_only:
+            # External customer - only public collection
+            main_results = self.main_db.query(
+                query_text=query,
+                n_results=n_results,
+                access_level="level_0_public"
+            )
+        else:
+            # Internal user - full main collection
+            main_results = self.main_db.query(
+                query_text=query,
+                n_results=n_results // 2,  # Reserve half for department-specific
+                access_level="level_0"
+            )
+        
+        results["main_context"] = main_results
+        
+        # Step 2: Query Level 1 (department-specific) - only for internal users
+        if not include_public_only:
+            accessible_depts = self.get_accessible_departments(user_role)
+            
+            if accessible_depts:
+                dept_results = self.level_db.query_multi_department(
+                    query_text=query,
+                    departments=accessible_depts,
+                    n_results_per_dept=max(2, n_results // (2 * len(accessible_depts)))
+                )
+                results["department_context"] = dept_results
+        
+        # Step 3: Merge and re-rank all results
+        all_results = results["main_context"] + results["department_context"]
+        
+        # Re-rank by relevance score
+        all_results.sort(key=lambda x: x["relevance_score"], reverse=True)
+        
+        # Take top n_results
+        results["all_results"] = all_results[:n_results]
+        
+        return results
+    
+    def format_context_for_llm(self, 
+                                retrieval_results: Dict,
+                                max_tokens: int = 3000) -> str:
+        """
+        Format retrieved documents as context string for LLM
+        
+        Returns formatted context with source citations
+        """
+        context_parts = []
+        current_tokens = 0
+        
+        for i, doc in enumerate(retrieval_results["all_results"]):
+            # Estimate tokens (rough approximation)
+            doc_tokens = len(doc["content"].split()) * 1.3
+            
+            if current_tokens + doc_tokens > max_tokens:
+                break
+            
+            source_info = f"[Source: {doc['metadata'].get('file_name', 'Unknown')} | " \
+                         f"Department: {doc.get('department', 'Company-wide')}]"
+            
+            context_parts.append(f"--- Document {i+1} {source_info} ---\n{doc['content']}\n")
+            current_tokens += doc_tokens
+        
+        return "\n".join(context_parts)</code></pre>
+</div>
+
+<div class="step-box">
+    <h4><span class="step-num">4.3</span> Ingest Department Documents</h4>
+    
+    <div class="action-box">
+        <h5>✅ Action: Add Department Ingestion to Script</h5>
+    </div>
+    
+    <pre><code># Add to scripts/ingest_documents.py
+
+def ingest_department_context(source_dir: str, department: str):
+    """Ingest documents into department-specific context"""
+    print("=" * 60)
+    print(f"INGESTING {department.upper()} DEPARTMENT (LEVEL 1) DOCUMENTS")
+    print("=" * 60)
+    
+    processor = DocumentProcessor()
+    embedder = EmbeddingGenerator(model_type="openai")
+    db = LevelContextDatabase()
+    
+    dept_enum = Department(department)
+    
+    # Define department-specific document sources
+    dept_sources = {
+        "sales": [
+            {"path": f"{source_dir}/sales/pricing_guides", "doc_type": "pricing_guide"},
+            {"path": f"{source_dir}/sales/customer_data", "doc_type": "customer_history"},
+            {"path": f"{source_dir}/sales/commission_rules", "doc_type": "commission_rules"},
+            {"path": f"{source_dir}/sales/competitor_analysis", "doc_type": "competitor_analysis"},
+        ],
+        "production": [
+            {"path": f"{source_dir}/production/work_instructions", "doc_type": "work_instruction"},
+            {"path": f"{source_dir}/production/machine_manuals", "doc_type": "machine_manual"},
+            {"path": f"{source_dir}/production/safety_protocols", "doc_type": "safety_protocol"},
+            {"path": f"{source_dir}/production/maintenance", "doc_type": "maintenance_schedule"},
+        ],
+        "engineering": [
+            {"path": f"{source_dir}/engineering/designs", "doc_type": "design_document"},
+            {"path": f"{source_dir}/engineering/material_certs", "doc_type": "material_certificate"},
+            {"path": f"{source_dir}/engineering/test_reports", "doc_type": "test_report"},
+            {"path": f"{source_dir}/engineering/compliance", "doc_type": "compliance_doc"},
+        ]
+    }
+    
+    sources = dept_sources.get(department, [])
+    total_docs = 0
+    
+    for source in sources:
+        if not Path(source["path"]).exists():
+            print(f"Skipping non-existent path: {source['path']}")
+            continue
+        
+        print(f"\nProcessing: {source['path']}")
+        
+        documents = processor.process_directory(
+            Path(source["path"]),
+            access_level="level_1",
+            department=department
+        )
+        
+        # Add document type
+        for doc in documents:
+            doc["metadata"]["document_type"] = source["doc_type"]
+        
+        # Generate embeddings
+        documents = embedder.process_documents(documents)
+        
+        # Add to department collection
+        db.add_department_documents(dept_enum, documents)
+        total_docs += len(documents)
+        
+        print(f"  Added {len(documents)} chunks")
+    
+    print(f"\n✅ {department} department ingestion complete!")
+    print(f"   Total documents: {total_docs}")
+    
+    return total_docs</code></pre>
+    
+    <div class="command-box">
+        <span class="comment"># Ingest all department documents</span><br>
+        <span class="cmd">python scripts/ingest_documents.py --source ./documents --level sales</span><br>
+        <span class="cmd">python scripts/ingest_documents.py --source ./documents --level production</span><br>
+        <span class="cmd">python scripts/ingest_documents.py --source ./documents --level engineering</span>
+    </div>
+</div>
+
+<div class="deliverable">
+    <h5>📦 Phase 4 Deliverables</h5>
+    <ul class="checklist">
+        <li>LevelContextDatabase class with department collections</li>
+        <li>HierarchicalRetriever with access control</li>
+        <li>Department-specific document ingestion</li>
+        <li>Role-to-department access mapping</li>
+        <li>Populated Level 1 knowledge bases for each department</li>
+    </ul>
+</div>
+
+</section>
+
+<!-- ==================== PHASE 5 ==================== -->
+<section id="phase5">
+<div class="phase-header">
+    <div class="phase-num">5</div>
+    <h2>Access Control & Security Layer</h2>
+</div>
+
+<p><strong>Duration:</strong> 1-2 weeks | <strong>Team:</strong> Backend Developer, Security Engineer</p>
+
+<div class="step-box">
+    <h4><span class="step-num">5.1</span> Implement User Authentication</h4>
+    
+    <div class="action-box">
+        <h5>✅ Action: Create JWT-Based Authentication</h5>
+    </div>
+    
+    <pre><code># src/auth/authentication.py
+
+from datetime import datetime, timedelta
+from typing import Optional
+from jose import JWTError, jwt
+from passlib.context import CryptContext
+from pydantic import BaseModel
+from fastapi import Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
+import os
+
+# Configuration
+SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key")
+ALGORITHM = os.getenv("ALGORITHM", "HS256")
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 480))
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+    user_id: Optional[str] = None
+    email: Optional[str] = None
+    role: Optional[str] = None
+    department: Optional[str] = None
+
+class User(BaseModel):
+    user_id: str
+    email: str
+    full_name: str
+    role: str
+    department: str
+    is_active: bool = True
+    is_internal: bool = True  # False for external customers
+
+class UserInDB(User):
+    hashed_password: str
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    return pwd_context.verify(plain_password, hashed_password)
+
+def get_password_hash(password: str) -> str:
+    return pwd_context.hash(password)
+
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
+    to_encode = data.copy()
+    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+async def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id: str = payload.get("sub")
+        email: str = payload.get("email")
+        role: str = payload.get("role")
+        department: str = payload.get("department")
+        
+        if user_id is None:
+            raise credentials_exception
+        
+        token_data = TokenData(
+            user_id=user_id,
+            email=email,
+            role=role,
+            department=department
+        )
+    except JWTError:
+        raise credentials_exception
+    
+    # In production, fetch full user from database
+    user = User(
+        user_id=token_data.user_id,
+        email=token_data.email,
+        full_name="",  # Fetch from DB
+        role=token_data.role,
+        department=token_data.department
+    )
+    
+    return user
+
+async def get_current_active_user(current_user: User = Depends(get_current_user)) -> User:
+    if not current_user.is_active:
+        raise HTTPException(status_code=400, detail="Inactive user")
+    return current_user</code></pre>
+</div>
+
+<div class="step-box">
+    <h4><span class="step-num">5.2</span> Implement Authorization Layer</h4>
+    
+    <div class="action-box">
+        <h5>✅ Action: Create Role-Based Access Control</h5>
+    </div>
+    
+    <pre><code># src/auth/authorization.py
+
+from typing import List, Set
+from functools import wraps
+from fastapi import HTTPException, status
+from src.auth.authentication import User
+from src.knowledge_base.level_contexts import Department
+
+class Permission:
+    """Define granular permissions"""
+    
+    # Main context permissions
+    VIEW_MAIN_CONTEXT = "view:main_context"
+    VIEW_PUBLIC_CONTEXT = "view:public_context"
+    
+    # Department permissions
+    VIEW_SALES_CONTEXT = "view:sales_context"
+    VIEW_PRODUCTION_CONTEXT = "view:production_context"
+    VIEW_ENGINEERING_CONTEXT = "view:engineering_context"
+    VIEW_CUSTOMER_SERVICE_CONTEXT = "view:customer_service_context"
+    
+    # Admin permissions
+    MANAGE_DOCUMENTS = "manage:documents"
+    MANAGE_USERS = "manage:users"
+    VIEW_ANALYTICS = "view:analytics"
+
+# Role-to-permission mapping
+ROLE_PERMISSIONS = {
+    # Internal roles
+    "sales_rep": {
+        Permission.VIEW_MAIN_CONTEXT,
+        Permission.VIEW_SALES_CONTEXT,
+    },
+    "sales_manager": {
+        Permission.VIEW_MAIN_CONTEXT,
+        Permission.VIEW_SALES_CONTEXT,
+        Permission.VIEW_ANALYTICS,
+    },
+    "production_worker": {
+        Permission.VIEW_MAIN_CONTEXT,
+        Permission.VIEW_PRODUCTION_CONTEXT,
+    },
+    "production_supervisor": {
+        Permission.VIEW_MAIN_CONTEXT,
+        Permission.VIEW_PRODUCTION_CONTEXT,
+        Permission.VIEW_ANALYTICS,
+    },
+    "engineer": {
+        Permission.VIEW_MAIN_CONTEXT,
+        Permission.VIEW_ENGINEERING_CONTEXT,
+    },
+    "quality_engineer": {
+        Permission.VIEW_MAIN_CONTEXT,
+        Permission.VIEW_ENGINEERING_CONTEXT,
+        Permission.VIEW_PRODUCTION_CONTEXT,
+    },
+    "customer_service": {
+        Permission.VIEW_MAIN_CONTEXT,
+        Permission.VIEW_CUSTOMER_SERVICE_CONTEXT,
+        Permission.VIEW_SALES_CONTEXT,
+    },
+    "manager": {
+        Permission.VIEW_MAIN_CONTEXT,
+        Permission.VIEW_SALES_CONTEXT,
+        Permission.VIEW_PRODUCTION_CONTEXT,
+        Permission.VIEW_ENGINEERING_CONTEXT,
+        Permission.VIEW_CUSTOMER_SERVICE_CONTEXT,
+        Permission.VIEW_ANALYTICS,
+    },
+    "admin": {
+        Permission.VIEW_MAIN_CONTEXT,
+        Permission.VIEW_SALES_CONTEXT,
+        Permission.VIEW_PRODUCTION_CONTEXT,
+        Permission.VIEW_ENGINEERING_CONTEXT,
+        Permission.VIEW_CUSTOMER_SERVICE_CONTEXT,
+        Permission.MANAGE_DOCUMENTS,
+        Permission.MANAGE_USERS,
+        Permission.VIEW_ANALYTICS,
+    },
+    # External roles
+    "external_customer": {
+        Permission.VIEW_PUBLIC_CONTEXT,
+    },
+}
+
+class AuthorizationService:
+    """Handle authorization checks"""
+    
+    @staticmethod
+    def get_user_permissions(user: User) -> Set[str]:
+        """Get all permissions for a user based on their role"""
+        return ROLE_PERMISSIONS.get(user.role, set())
+    
+    @staticmethod
+    def check_permission(user: User, required_permission: str) -> bool:
+        """Check if user has a specific permission"""
+        user_permissions = AuthorizationService.get_user_permissions(user)
+        return required_permission in user_permissions
+    
+    @staticmethod
+    def get_accessible_departments(user: User) -> List[Department]:
+        """Get departments user can access based on permissions"""
+        permissions = AuthorizationService.get_user_permissions(user)
+        
+        department_map = {
+            Permission.VIEW_SALES_CONTEXT: Department.SALES,
+            Permission.VIEW_PRODUCTION_CONTEXT: Department.PRODUCTION,
+            Permission.VIEW_ENGINEERING_CONTEXT: Department.ENGINEERING,
+            Permission.VIEW_CUSTOMER_SERVICE_CONTEXT: Department.CUSTOMER_SERVICE,
+        }
+        
+        accessible = []
+        for perm, dept in department_map.items():
+            if perm in permissions:
+                accessible.append(dept)
+        
+        return accessible
+    
+    @staticmethod
+    def can_access_public_only(user: User) -> bool:
+        """Check if user should only see public content"""
+        permissions = AuthorizationService.get_user_permissions(user)
+        return (Permission.VIEW_PUBLIC_CONTEXT in permissions and 
+                Permission.VIEW_MAIN_CONTEXT not in permissions)
+
+def require_permission(permission: str):
+    """Decorator to require a specific permission"""
+    def decorator(func):
+        @wraps(func)
+        async def wrapper(*args, current_user: User, **kwargs):
+            if not AuthorizationService.check_permission(current_user, permission):
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail=f"Permission denied: {permission}"
+                )
+            return await func(*args, current_user=current_user, **kwargs)
+        return wrapper
+    return decorator</code></pre>
+</div>
+
+<div class="deliverable">
+    <h5>📦 Phase 5 Deliverables</h5>
+    <ul class="checklist">
+        <li>JWT-based authentication system</li>
+        <li>User model with role and department</li>
+        <li>Role-based permission system</li>
+        <li>Authorization service for access control</li>
+        <li>Permission decorators for API endpoints</li>
+    </ul>
+</div>
+
+</section>
+
+<!-- ==================== PHASE 6 ==================== -->
+<section id="phase6">
+<div class="phase-header">
+    <div class="phase-num">6</div>
+    <h2>Internal AI Agent Development</h2>
+</div>
+
+<p><strong>Duration:</strong> 2-3 weeks | <strong>Team:</strong> ML Engineer, Backend Developer</p>
+
+<div class="step-box">
+    <h4><span class="step-num">6.1</span> Create Internal Agent with RAG</h4>
+    
+    <div class="action-box">
+        <h5>✅ Action: Build the Conversational AI Agent</h5>
+    </div>
+    
+    <pre><code># src/agents/internal_agent.py
+
+from langchain_openai import ChatOpenAI
+from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain.memory import ConversationBufferWindowMemory
+from langchain.schema import HumanMessage, AIMessage, SystemMessage
+from typing import List, Dict, Optional
+import os
+
+from src.knowledge_base.retriever import HierarchicalRetriever
+from src.auth.authentication import User
+from src.auth.authorization import AuthorizationService
+
+class InternalAgent:
+    """
+    Conversational AI Agent for JD Jones Internal Users
+    
+    Features:
+    - Access-controlled knowledge retrieval
+    - Conversation memory
+    - Source citations
+    - Role-aware responses
+    """
+    
+    def __init__(self):
+        self.llm = ChatOpenAI(
+            model=os.getenv("LLM_MODEL", "gpt-4-turbo-preview"),
+            temperature=float(os.getenv("LLM_TEMPERATURE", 0.1)),
+            max_tokens=int(os.getenv("MAX_TOKENS", 2000))
+        )
+        
+        self.retriever = HierarchicalRetriever()
+        
+        # Load system prompt
+        self.system_prompt = self._load_system_prompt()
+    
+    def _load_system_prompt(self) -> str:
+        prompt_path = "src/agents/prompts/internal_system_prompt.txt"
+        try:
+            with open(prompt_path, "r") as f:
+                return f.read()
+        except FileNotFoundError:
+            return self._default_system_prompt()
+    
+    def _default_system_prompt(self) -> str:
+        return """You are JD Jones AI Assistant, an internal knowledge assistant for JD Jones Industries employees.
+
+Your role is to help employees find information from the company knowledge base, answer questions about products, policies, procedures, and provide guidance.
+
+IMPORTANT RULES:
+1. Only answer based on the provided context. If the information is not in the context, say "I don't have information about that in my knowledge base."
+2. Always cite your sources by mentioning the document name.
+3. Be professional but friendly.
+4. If the question is about something you're not sure about, ask for clarification.
+5. Never make up information or policies.
+6. For sensitive topics (HR, legal, financial), recommend the employee speak with the appropriate department.
+
+USER CONTEXT:
+- Name: {user_name}
+- Role: {user_role}
+- Department: {user_department}
+
+KNOWLEDGE CONTEXT:
+{context}
+
+Remember to tailor your response to the user's role and department when relevant."""
+    
+    def _build_prompt(self, 
+                      user: User, 
+                      query: str, 
+                      context: str,
+                      conversation_history: List[Dict]) -> List:
+        """Build the prompt with context and history"""
+        
+        # Format system prompt with user info
+        system = self.system_prompt.format(
+            user_name=user.full_name,
+            user_role=user.role,
+            user_department=user.department,
+            context=context
+        )
+        
+        messages = [SystemMessage(content=system)]
+        
+        # Add conversation history (last 5 exchanges)
+        for msg in conversation_history[-10:]:
+            if msg["role"] == "user":
+                messages.append(HumanMessage(content=msg["content"]))
+            else:
+                messages.append(AIMessage(content=msg["content"]))
+        
+        # Add current query
+        messages.append(HumanMessage(content=query))
+        
+        return messages
+    
+    async def chat(self,
+                   user: User,
+                   query: str,
+                   conversation_history: List[Dict] = None,
+                   session_id: Optional[str] = None) -> Dict:
+        """
+        Process a chat message from an internal user
+        
+        Args:
+            user: Authenticated user
+            query: User's question
+            conversation_history: Previous messages in conversation
+            session_id: Session identifier for memory
+        
+        Returns:
+            {
+                "response": str,
+                "sources": List[Dict],
+                "session_id": str
+            }
+        """
+        conversation_history = conversation_history or []
+        
+        # Step 1: Retrieve relevant documents with access control
+        retrieval_results = self.retriever.retrieve(
+            query=query,
+            user_role=user.role,
+            user_department=user.department,
+            n_results=8,
+            include_public_only=False
+        )
+        
+        # Step 2: Format context for LLM
+        context = self.retriever.format_context_for_llm(
+            retrieval_results,
+            max_tokens=3000
+        )
+        
+        # Step 3: Build prompt
+        messages = self._build_prompt(user, query, context, conversation_history)
+        
+        # Step 4: Generate response
+        response = await self.llm.ainvoke(messages)
+        
+        # Step 5: Format sources for citation
+        sources = [
+            {
+                "document": doc["metadata"].get("file_name", "Unknown"),
+                "department": doc.get("department", "Company-wide"),
+                "relevance": round(doc["relevance_score"], 3)
+            }
+            for doc in retrieval_results["all_results"][:5]
+        ]
+        
+        return {
+            "response": response.content,
+            "sources": sources,
+            "session_id": session_id or "new_session"
+        }</code></pre>
+</div>
+
+<div class="step-box">
+    <h4><span class="step-num">6.2</span> Create Internal Chat API</h4>
+    
+    <div class="action-box">
+        <h5>✅ Action: Build API Endpoints for Internal Chat</h5>
+    </div>
+    
+    <pre><code># src/api/routers/internal_chat.py
+
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
+from typing import List, Optional
+import uuid
+
+from src.auth.authentication import User, get_current_active_user
+from src.auth.authorization import require_permission, Permission
+from src.agents.internal_agent import InternalAgent
+
+router = APIRouter(prefix="/internal", tags=["Internal Chat"])
+
+# Initialize agent
+agent = InternalAgent()
+
+# In-memory session storage (use Redis in production)
+sessions = {}
+
+class ChatRequest(BaseModel):
+    message: str
+    session_id: Optional[str] = None
+
+class ChatResponse(BaseModel):
+    response: str
+    sources: List[dict]
+    session_id: str
+
+class ConversationMessage(BaseModel):
+    role: str  # "user" or "assistant"
+    content: str
+    timestamp: str
+
+@router.post("/chat", response_model=ChatResponse)
+async def chat(
+    request: ChatRequest,
+    current_user: User = Depends(get_current_active_user)
+):
+    """
+    Send a message to the internal AI agent
+    
+    Requires: Internal user authentication
+    """
+    # Get or create session
+    session_id = request.session_id or str(uuid.uuid4())
+    
+    if session_id not in sessions:
+        sessions[session_id] = {
+            "user_id": current_user.user_id,
+            "history": []
+        }
+    
+    # Get conversation history
+    history = sessions[session_id]["history"]
+    
+    # Process message
+    result = await agent.chat(
+        user=current_user,
+        query=request.message,
+        conversation_history=history,
+        session_id=session_id
+    )
+    
+    # Update history
+    sessions[session_id]["history"].append({
+        "role": "user",
+        "content": request.message
+    })
+    sessions[session_id]["history"].append({
+        "role": "assistant",
+        "content": result["response"]
+    })
+    
+    return ChatResponse(
+        response=result["response"],
+        sources=result["sources"],
+        session_id=session_id
+    )
+
+@router.get("/sessions/{session_id}/history")
+async def get_session_history(
+    session_id: str,
+    current_user: User = Depends(get_current_active_user)
+) -> List[ConversationMessage]:
+    """Get conversation history for a session"""
+    
+    if session_id not in sessions:
+        raise HTTPException(status_code=404, detail="Session not found")
+    
+    session = sessions[session_id]
+    
+    # Verify ownership
+    if session["user_id"] != current_user.user_id:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    return [
+        ConversationMessage(
+            role=msg["role"],
+            content=msg["content"],
+            timestamp=""  # Add timestamps in production
+        )
+        for msg in session["history"]
+    ]
+
+@router.delete("/sessions/{session_id}")
+async def clear_session(
+    session_id: str,
+    current_user: User = Depends(get_current_active_user)
+):
+    """Clear a conversation session"""
+    
+    if session_id in sessions:
+        if sessions[session_id]["user_id"] == current_user.user_id:
+            del sessions[session_id]
+            return {"status": "Session cleared"}
+    
+    raise HTTPException(status_code=404, detail="Session not found")</code></pre>
+</div>
+
+<div class="step-box">
+    <h4><span class="step-num">6.3</span> Create System Prompt File</h4>
+    
+    <div class="action-box">
+        <h5>✅ Action: Create Detailed System Prompt</h5>
+    </div>
+    
+    <pre><code># src/agents/prompts/internal_system_prompt.txt
+
+You are JD Jones AI Assistant, the official internal knowledge assistant for JD Jones Industries.
+
+## YOUR IDENTITY
+- You are a helpful, knowledgeable AI assistant
+- You represent JD Jones Industries' commitment to supporting employees
+- You have access to company documents, policies, procedures, and technical information
+
+## CURRENT USER
+- Name: {user_name}
+- Role: {user_role}
+- Department: {user_department}
+
+## KNOWLEDGE CONTEXT
+The following information has been retrieved from the company knowledge base based on the user's question:
+
+{context}
+
+## RESPONSE GUIDELINES
+
+### DO:
+1. Answer questions based ONLY on the provided context
+2. Cite your sources by mentioning document names (e.g., "According to the Safety Manual...")
+3. Be concise but complete
+4. Ask clarifying questions if the query is ambiguous
+5. Tailor technical depth to the user's role
+6. Suggest related topics they might want to explore
+7. For multi-step processes, use numbered lists
+
+### DON'T:
+1. Make up information not in the context
+2. Speculate about policies or procedures
+3. Provide personal opinions on company matters
+4. Share information the user's role shouldn't access
+5. Give medical, legal, or financial advice (refer to appropriate departments)
+
+### WHEN INFORMATION IS NOT AVAILABLE:
+Say: "I don't have specific information about that in my knowledge base. You might want to:
+- Check with [relevant department]
+- Look in [suggested resource]
+- Contact [appropriate person/team]"
+
+### FOR SENSITIVE TOPICS:
+- HR matters: "Please contact HR directly for personalized assistance"
+- Legal questions: "This requires review by our legal team"
+- Financial details: "Please speak with the Finance department"
+- Safety concerns: "Please report this immediately to your supervisor and Safety team"
+
+## RESPONSE FORMAT
+- Start with a direct answer to the question
+- Provide supporting details from the context
+- End with source citations and any relevant follow-up suggestions</code></pre>
+</div>
+
+<div class="deliverable">
+    <h5>📦 Phase 6 Deliverables</h5>
+    <ul class="checklist">
+        <li>InternalAgent class with RAG integration</li>
+        <li>Chat API endpoints with session management</li>
+        <li>Customized system prompt for internal use</li>
+        <li>Source citation in responses</li>
+        <li>Conversation history management</li>
+    </ul>
+</div>
+
+</section>
+
+<!-- ==================== PHASE 7 ==================== -->
+<section id="phase7">
+<div class="phase-header">
+    <div class="phase-num">7</div>
+    <h2>External Classification & Decision System</h2>
+</div>
+
+<p><strong>Duration:</strong> 3-4 weeks | <strong>Team:</strong> ML Engineer, Frontend Developer, UX Designer</p>
+
+<div class="note-box">
+    <strong>💡 Key Design Principle:</strong> Instead of an open-ended chatbot (which can overwhelm customers), we create a <strong>guided decision tree</strong> that classifies customer intent and provides structured assistance. Customers select categories and follow guided paths to get answers.
+</div>
+
+<div class="step-box">
+    <h4><span class="step-num">7.1</span> Design Customer Intent Classification</h4>
+    
+    <div class="action-box">
+        <h5>✅ Action: Define Customer Intent Taxonomy</h5>
+    </div>
+    
+    <pre><code># src/external_system/intent_taxonomy.py
+
+from enum import Enum
+from typing import List, Dict, Optional
+from pydantic import BaseModel
+
+class PrimaryIntent(str, Enum):
+    """Top-level customer intent categories"""
+    PRODUCT_INFO = "product_info"
+    ORDER_STATUS = "order_status"
+    TECHNICAL_SUPPORT = "technical_support"
+    PRICING_QUOTE = "pricing_quote"
+    COMPLAINT_ISSUE = "complaint_issue"
+    GENERAL_INQUIRY = "general_inquiry"
+
+class SecondaryIntent(str, Enum):
+    """Second-level refinements"""
+    # Product Info
+    PRODUCT_SPECIFICATIONS = "product_specifications"
+    PRODUCT_AVAILABILITY = "product_availability"
+    PRODUCT_COMPARISON = "product_comparison"
+    MATERIAL_OPTIONS = "material_options"
+    
+    # Order Status
+    TRACK_ORDER = "track_order"
+    MODIFY_ORDER = "modify_order"
+    CANCEL_ORDER = "cancel_order"
+    DELIVERY_ESTIMATE = "delivery_estimate"
+    
+    # Technical Support
+    INSTALLATION_HELP = "installation_help"
+    TROUBLESHOOTING = "troubleshooting"
+    MATERIAL_COMPATIBILITY = "material_compatibility"
+    CERTIFICATION_DOCS = "certification_docs"
+    
+    # Pricing & Quote
+    REQUEST_QUOTE = "request_quote"
+    BULK_PRICING = "bulk_pricing"
+    PRICE_CHECK = "price_check"
+    
+    # Complaint/Issue
+    PRODUCT_DEFECT = "product_defect"
+    WRONG_ORDER = "wrong_order"
+    LATE_DELIVERY = "late_delivery"
+    RETURN_REQUEST = "return_request"
+    
+    # General
+    CONTACT_SALES = "contact_sales"
+    COMPANY_INFO = "company_info"
+    OTHER = "other"
+
+class IntentNode(BaseModel):
+    """Node in the decision tree"""
+    id: str
+    label: str
+    description: str
+    icon: Optional[str] = None
+    children: Optional[List["IntentNode"]] = None
+    action_type: Optional[str] = None  # "show_info", "collect_data", "escalate", "search_kb"
+    kb_query_template: Optional[str] = None  # Template for KB search
+    requires_auth: bool = False
+    collect_fields: Optional[List[str]] = None  # Fields to collect from user
+
+# Build the decision tree
+CUSTOMER_DECISION_TREE = IntentNode(
+    id="root",
+    label="How can we help you today?",
+    description="Select the option that best describes what you need",
+    children=[
+        IntentNode(
+            id="product_info",
+            label="🔍 Product Information",
+            description="Learn about our gaskets, seals, and materials",
+            children=[
+                IntentNode(
+                    id="product_specifications",
+                    label="📋 Product Specifications",
+                    description="View technical specs, dimensions, materials",
+                    action_type="search_kb",
+                    kb_query_template="product specifications for {product_type}",
+                    collect_fields=["product_type"]
+                ),
+                IntentNode(
+                    id="material_options",
+                    label="🧪 Material Options",
+                    description="Compare materials for your application",
+                    action_type="search_kb",
+                    kb_query_template="material options comparison {application}",
+                    collect_fields=["application", "temperature_range", "chemical_exposure"]
+                ),
+                IntentNode(
+                    id="product_availability",
+                    label="📦 Check Availability",
+                    description="See if a product is in stock",
+                    action_type="collect_data",
+                    collect_fields=["part_number", "quantity_needed"]
+                ),
+            ]
+        ),
+        IntentNode(
+            id="order_status",
+            label="📦 Order Status",
+            description="Track your order or get delivery updates",
+            requires_auth=True,
+            children=[
+                IntentNode(
+                    id="track_order",
+                    label="🚚 Track My Order",
+                    description="Get real-time order tracking",
+                    action_type="collect_data",
+                    collect_fields=["order_number"],
+                    requires_auth=True
+                ),
+                IntentNode(
+                    id="delivery_estimate",
+                    label="📅 Delivery Estimate",
+                    description="When will my order arrive?",
+                    action_type="collect_data",
+                    collect_fields=["order_number"],
+                    requires_auth=True
+                ),
+            ]
+        ),
+        IntentNode(
+            id="technical_support",
+            label="🔧 Technical Support",
+            description="Get help with installation, compatibility, or issues",
+            children=[
+                IntentNode(
+                    id="installation_help",
+                    label="🛠️ Installation Guide",
+                    description="How to install our products",
+                    action_type="search_kb",
+                    kb_query_template="installation instructions for {product_type}",
+                    collect_fields=["product_type"]
+                ),
+                IntentNode(
+                    id="material_compatibility",
+                    label="🧪 Material Compatibility",
+                    description="Check if materials work with your fluids/gases",
+                    action_type="search_kb",
+                    kb_query_template="material compatibility {material} with {fluid_type}",
+                    collect_fields=["material", "fluid_type", "temperature", "pressure"]
+                ),
+                IntentNode(
+                    id="troubleshooting",
+                    label="⚠️ Troubleshooting",
+                    description="Solve a problem with a product",
+                    action_type="search_kb",
+                    kb_query_template="troubleshooting {problem_type} for {product_type}",
+                    collect_fields=["product_type", "problem_type"]
+                ),
+            ]
+        ),
+        IntentNode(
+            id="pricing_quote",
+            label="💰 Pricing & Quotes",
+            description="Get pricing information or request a quote",
+            children=[
+                IntentNode(
+                    id="request_quote",
+                    label="📝 Request a Quote",
+                    description="Get a custom quote for your needs",
+                    action_type="collect_data",
+                    collect_fields=["product_type", "quantity", "company_name", "email", "phone"]
+                ),
+                IntentNode(
+                    id="bulk_pricing",
+                    label="📊 Bulk/Volume Pricing",
+                    description="Pricing for large orders",
+                    action_type="search_kb",
+                    kb_query_template="volume discount pricing policy",
+                    collect_fields=["estimated_quantity"]
+                ),
+            ]
+        ),
+        IntentNode(
+            id="complaint_issue",
+            label="⚠️ Report an Issue",
+            description="Report a problem or file a complaint",
+            children=[
+                IntentNode(
+                    id="product_defect",
+                    label="🔴 Product Defect",
+                    description="Report a defective product",
+                    action_type="escalate",
+                    collect_fields=["order_number", "product_type", "defect_description", "photos"]
+                ),
+                IntentNode(
+                    id="return_request",
+                    label="↩️ Return Request",
+                    description="Request to return a product",
+                    action_type="search_kb",
+                    kb_query_template="return policy and procedure",
+                    collect_fields=["order_number", "reason"]
+                ),
+            ]
+        ),
+        IntentNode(
+            id="contact_human",
+            label="👤 Speak to Someone",
+            description="Connect with our team directly",
+            action_type="escalate",
+            collect_fields=["name", "email", "phone", "preferred_contact_method", "message"]
+        ),
+    ]
+)</code></pre>
+</div>
+
+<div class="step-box">
+    <h4><span class="step-num">7.2</span> Build Classification Engine</h4>
+    
+    <div class="action-box">
+        <h5>✅ Action: Create Intent Classifier (for optional free-text input)</h5>
+    </div>
+    
+    <pre><code># src/external_system/classifier.py
+
+from langchain_openai import ChatOpenAI
+from langchain.prompts import ChatPromptTemplate
+from typing import Dict, List, Optional
+import json
+import os
+
+from src.external_system.intent_taxonomy import PrimaryIntent, SecondaryIntent
+
+class IntentClassifier:
+    """
+    Classifies customer free-text input into intent categories
+    Used when customer types instead of selecting from decision tree
+    """
+    
+    def __init__(self):
+        self.llm = ChatOpenAI(
+            model="gpt-4-turbo-preview",
+            temperature=0
+        )
+        
+        self.classification_prompt = ChatPromptTemplate.from_template("""
+You are a customer intent classifier for JD Jones Industries, a gasket and sealing products manufacturer.
+
+Classify the following customer message into the appropriate categories.
+
+CUSTOMER MESSAGE:
+{message}
+
+PRIMARY INTENT OPTIONS:
+- product_info: Questions about products, specifications, materials
+- order_status: Questions about existing orders, tracking, delivery
+- technical_support: Installation help, troubleshooting, compatibility
+- pricing_quote: Pricing questions, quote requests
+- complaint_issue: Complaints, defects, returns
+- general_inquiry: Company info, other questions
+
+SECONDARY INTENT OPTIONS:
+(Select the most specific one that applies)
+- product_specifications, product_availability, product_comparison, material_options
+- track_order, modify_order, cancel_order, delivery_estimate
+- installation_help, troubleshooting, material_compatibility, certification_docs
+- request_quote, bulk_pricing, price_check
+- product_defect, wrong_order, late_delivery, return_request
+- contact_sales, company_info, other
+
+Respond with a JSON object:
+{{
+    "primary_intent": "<primary_intent>",
+    "secondary_intent": "<secondary_intent>",
+    "confidence": <0.0-1.0>,
+    "extracted_entities": {{
+        "product_type": "<if mentioned>",
+        "order_number": "<if mentioned>",
+        "material": "<if mentioned>",
+        "quantity": "<if mentioned>"
+    }},
+    "needs_clarification": <true/false>,
+    "clarification_question": "<if needs_clarification is true>"
+}}
+""")
+    
+    async def classify(self, message: str) -> Dict:
+        """Classify customer message into intent categories"""
+        
+        prompt = self.classification_prompt.format(message=message)
+        response = await self.llm.ainvoke(prompt)
+        
+        try:
+            result = json.loads(response.content)
+            return result
+        except json.JSONDecodeError:
+            # Fallback if LLM doesn't return valid JSON
+            return {
+                "primary_intent": "general_inquiry",
+                "secondary_intent": "other",
+                "confidence": 0.5,
+                "extracted_entities": {},
+                "needs_clarification": True,
+                "clarification_question": "Could you please select from our help categories?"
+            }
+    
+    def get_decision_tree_path(self, classification: Dict) -> List[str]:
+        """Map classification to decision tree node path"""
+        return [classification["primary_intent"], classification["secondary_intent"]]</code></pre>
+</div>
+
+<div class="step-box">
+    <h4><span class="step-num">7.3</span> Build External Response Generator</h4>
+    
+    <div class="action-box">
+        <h5>✅ Action: Create Structured Response System</h5>
+    </div>
+    
+    <pre><code># src/external_system/response_generator.py
+
+from langchain_openai import ChatOpenAI
+from langchain.prompts import ChatPromptTemplate
+from typing import Dict, List, Optional
+from pydantic import BaseModel
+import os
+
+from src.knowledge_base.retriever import HierarchicalRetriever
+from src.external_system.intent_taxonomy import IntentNode
+
+class ExternalResponse(BaseModel):
+    """Structured response for external customers"""
+    success: bool
+    response_type: str  # "info", "form", "escalation", "error"
+    title: str
+    content: str
+    sources: Optional[List[Dict]] = None
+    next_steps: Optional[List[Dict]] = None  # Suggested follow-up actions
+    form_fields: Optional[List[Dict]] = None  # If collecting data
+    contact_info: Optional[Dict] = None  # If escalating
+
+class ExternalResponseGenerator:
+    """
+    Generates structured responses for external customers
+    Based on decision tree navigation and KB retrieval
+    """
+    
+    def __init__(self):
+        self.llm = ChatOpenAI(
+            model="gpt-4-turbo-preview",
+            temperature=0.2,
+            max_tokens=1000
+        )
+        
+        self.retriever = HierarchicalRetriever()
+        
+        self.response_prompt = ChatPromptTemplate.from_template("""
+You are a helpful customer service assistant for JD Jones Industries, a gasket and sealing products manufacturer.
+
+Generate a clear, helpful response for a customer based on the following:
+
+CUSTOMER'S QUESTION CATEGORY: {intent}
+CUSTOMER'S SPECIFIC QUESTION: {query}
+COLLECTED INFORMATION: {collected_data}
+
+RELEVANT KNOWLEDGE BASE INFORMATION:
+{context}
+
+RESPONSE GUIDELINES:
+1. Be professional, friendly, and concise
+2. Answer ONLY what is asked - don't overwhelm with extra information
+3. Use simple language, avoid jargon unless necessary
+4. If the KB doesn't have the answer, acknowledge it and suggest next steps
+5. Include specific product names, part numbers, or values when available
+6. End with a clear next step or call-to-action
+
+Format your response as:
+- Start with a direct answer
+- Provide supporting details (keep brief)
+- End with suggested next steps
+
+DO NOT:
+- Make up product specifications or pricing
+- Promise delivery dates or availability without verified data
+- Provide legal or safety guarantees
+""")
+    
+    async def generate_response(self,
+                                  intent_node: IntentNode,
+                                  collected_data: Dict = None,
+                                  customer_query: str = None) -> ExternalResponse:
+        """
+        Generate response based on decision tree node and collected data
+        """
+        collected_data = collected_data or {}
+        
+        # Handle different action types
+        if intent_node.action_type == "search_kb":
+            return await self._handle_kb_search(intent_node, collected_data, customer_query)
+        
+        elif intent_node.action_type == "collect_data":
+            return self._handle_data_collection(intent_node, collected_data)
+        
+        elif intent_node.action_type == "escalate":
+            return self._handle_escalation(intent_node, collected_data)
+        
+        else:
+            # Show children options (continue navigation)
+            return self._handle_navigation(intent_node)
+    
+    async def _handle_kb_search(self,
+                                 intent_node: IntentNode,
+                                 collected_data: Dict,
+                                 customer_query: str) -> ExternalResponse:
+        """Search knowledge base and generate response"""
+        
+        # Build query from template and collected data
+        query = intent_node.kb_query_template.format(**collected_data) if intent_node.kb_query_template else customer_query
+        
+        # Search KB (public content only for external users)
+        retrieval_results = self.retriever.retrieve(
+            query=query,
+            user_role="external_customer",
+            n_results=5,
+            include_public_only=True
+        )
+        
+        # Format context
+        context = self.retriever.format_context_for_llm(retrieval_results, max_tokens=2000)
+        
+        # Generate response
+        prompt = self.response_prompt.format(
+            intent=intent_node.label,
+            query=customer_query or query,
+            collected_data=str(collected_data),
+            context=context
+        )
+        
+        llm_response = await self.llm.ainvoke(prompt)
+        
+        # Format sources
+        sources = [
+            {
+                "document": doc["metadata"].get("file_name", "Product Information"),
+                "relevance": round(doc["relevance_score"], 2)
+            }
+            for doc in retrieval_results["all_results"][:3]
+        ]
+        
+        return ExternalResponse(
+            success=True,
+            response_type="info",
+            title=intent_node.label,
+            content=llm_response.content,
+            sources=sources if sources else None,
+            next_steps=[
+                {"label": "Request a Quote", "action": "navigate", "target": "request_quote"},
+                {"label": "Speak to Sales", "action": "navigate", "target": "contact_human"},
+                {"label": "Back to Main Menu", "action": "navigate", "target": "root"}
+            ]
+        )
+    
+    def _handle_data_collection(self,
+                                 intent_node: IntentNode,
+                                 collected_data: Dict) -> ExternalResponse:
+        """Return form for data collection"""
+        
+        # Define field configurations
+        field_configs = {
+            "product_type": {"label": "Product Type", "type": "select", "options": ["Gaskets", "Seals", "Packing", "Other"]},
+            "quantity": {"label": "Quantity Needed", "type": "number", "min": 1},
+            "order_number": {"label": "Order Number", "type": "text", "placeholder": "e.g., JDJ-2024-12345"},
+            "company_name": {"label": "Company Name", "type": "text"},
+            "email": {"label": "Email Address", "type": "email"},
+            "phone": {"label": "Phone Number", "type": "tel"},
+            "application": {"label": "Application/Use Case", "type": "textarea"},
+            "temperature_range": {"label": "Operating Temperature", "type": "select", "options": ["-40 to 100°C", "100 to 300°C", "300°C+"]},
+            "chemical_exposure": {"label": "Chemical Exposure", "type": "text", "placeholder": "e.g., Oil, Steam, Acids"},
+            "part_number": {"label": "Part Number (if known)", "type": "text"},
+            "problem_type": {"label": "Problem Description", "type": "textarea"},
+            "material": {"label": "Material Type", "type": "select", "options": ["Graphite", "PTFE", "Rubber", "Fiber", "Metal", "Not Sure"]},
+            "fluid_type": {"label": "Fluid/Gas Type", "type": "text"},
+        }
+        
+        form_fields = []
+        for field in intent_node.collect_fields or []:
+            if field in field_configs:
+                form_fields.append({
+                    "name": field,
+                    **field_configs[field]
+                })
+        
+        return ExternalResponse(
+            success=True,
+            response_type="form",
+            title=intent_node.label,
+            content=intent_node.description,
+            form_fields=form_fields,
+            next_steps=[
+                {"label": "Submit", "action": "submit_form"},
+                {"label": "Back", "action": "navigate", "target": "back"}
+            ]
+        )
+    
+    def _handle_escalation(self,
+                            intent_node: IntentNode,
+                            collected_data: Dict) -> ExternalResponse:
+        """Handle escalation to human agent"""
+        
+        return ExternalResponse(
+            success=True,
+            response_type="escalation",
+            title="Connect with Our Team",
+            content="We'll connect you with a team member who can help. Please provide your contact information.",
+            form_fields=[
+                {"name": "name", "label": "Your Name", "type": "text", "required": True},
+                {"name": "email", "label": "Email Address", "type": "email", "required": True},
+                {"name": "phone", "label": "Phone Number", "type": "tel"},
+                {"name": "preferred_contact", "label": "Preferred Contact Method", "type": "select", "options": ["Email", "Phone", "Either"]},
+                {"name": "message", "label": "How can we help?", "type": "textarea", "required": True},
+            ],
+            contact_info={
+                "phone": "+1-800-JDJ-ONES",
+                "email": "support@jdjones.com",
+                "hours": "Monday-Friday, 8AM-6PM EST"
+            },
+            next_steps=[
+                {"label": "Submit Request", "action": "submit_escalation"},
+                {"label": "Back to Help", "action": "navigate", "target": "root"}
+            ]
+        )
+    
+    def _handle_navigation(self, intent_node: IntentNode) -> ExternalResponse:
+        """Return child options for navigation"""
+        
+        children_options = []
+        if intent_node.children:
+            for child in intent_node.children:
+                children_options.append({
+                    "id": child.id,
+                    "label": child.label,
+                    "description": child.description,
+                    "icon": child.icon
+                })
+        
+        return ExternalResponse(
+            success=True,
+            response_type="navigation",
+            title=intent_node.label,
+            content=intent_node.description,
+            next_steps=children_options
+        )</code></pre>
+</div>
+
+<div class="step-box">
+    <h4><span class="step-num">7.4</span> Create External Portal API</h4>
+    
+    <div class="action-box">
+        <h5>✅ Action: Build API Endpoints for External Portal</h5>
+    </div>
+    
+    <pre><code># src/api/routers/external_portal.py
+
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
+from typing import Dict, List, Optional
+import uuid
+
+from src.external_system.intent_taxonomy import CUSTOMER_DECISION_TREE, IntentNode
+from src.external_system.classifier import IntentClassifier
+from src.external_system.response_generator import ExternalResponseGenerator, ExternalResponse
+
+router = APIRouter(prefix="/external", tags=["External Customer Portal"])
+
+# Initialize components
+classifier = IntentClassifier()
+response_generator = ExternalResponseGenerator()
+
+# Cache decision tree for fast access
+decision_tree_cache = {}
+
+def build_tree_cache(node: IntentNode, path: str = ""):
+    """Build flat cache of decision tree nodes by path"""
+    current_path = f"{path}/{node.id}" if path else node.id
+    decision_tree_cache[current_path] = node
+    decision_tree_cache[node.id] = node  # Also by ID
+    
+    if node.children:
+        for child in node.children:
+            build_tree_cache(child, current_path)
+
+# Initialize cache
+build_tree_cache(CUSTOMER_DECISION_TREE)
+
+class NavigationRequest(BaseModel):
+    node_id: str
+    collected_data: Optional[Dict] = None
+    customer_query: Optional[str] = None
+
+class ClassifyRequest(BaseModel):
+    message: str
+
+class FormSubmission(BaseModel):
+    node_id: str
+    form_data: Dict
+
+@router.get("/decision-tree")
+async def get_decision_tree() -> Dict:
+    """
+    Get the full decision tree structure for initial rendering
+    """
+    def node_to_dict(node: IntentNode) -> Dict:
+        result = {
+            "id": node.id,
+            "label": node.label,
+            "description": node.description,
+            "icon": node.icon,
+            "action_type": node.action_type,
+            "requires_auth": node.requires_auth,
+        }
+        if node.children:
+            result["children"] = [node_to_dict(child) for child in node.children]
+        return result
+    
+    return {"tree": node_to_dict(CUSTOMER_DECISION_TREE)}
+
+@router.post("/navigate", response_model=ExternalResponse)
+async def navigate_tree(request: NavigationRequest):
+    """
+    Navigate to a node in the decision tree and get response
+    """
+    # Find node
+    node = decision_tree_cache.get(request.node_id)
+    
+    if not node:
+        raise HTTPException(status_code=404, detail=f"Node not found: {request.node_id}")
+    
+    # Generate response
+    response = await response_generator.generate_response(
+        intent_node=node,
+        collected_data=request.collected_data,
+        customer_query=request.customer_query
+    )
+    
+    return response
+
+@router.post("/classify")
+async def classify_message(request: ClassifyRequest):
+    """
+    Classify free-text customer message and suggest decision tree path
+    (Optional feature for customers who prefer typing)
+    """
+    classification = await classifier.classify(request.message)
+    
+    # Get suggested node
+    primary = classification["primary_intent"]
+    secondary = classification["secondary_intent"]
+    
+    suggested_node = decision_tree_cache.get(secondary) or decision_tree_cache.get(primary)
+    
+    return {
+        "classification": classification,
+        "suggested_path": [primary, secondary],
+        "suggested_node": suggested_node.id if suggested_node else "root",
+        "suggested_label": suggested_node.label if suggested_node else "Main Menu"
+    }
+
+@router.post("/submit-form")
+async def submit_form(submission: FormSubmission):
+    """
+    Handle form submission from customer
+    """
+    node = decision_tree_cache.get(submission.node_id)
+    
+    if not node:
+        raise HTTPException(status_code=404, detail="Invalid form context")
+    
+    # Process based on node type
+    if submission.node_id == "request_quote":
+        # Create quote request in CRM
+        # This would integrate with your CRM/sales system
+        return {
+            "success": True,
+            "message": "Thank you! Your quote request has been submitted. Our sales team will contact you within 1 business day.",
+            "reference_number": f"QR-{uuid.uuid4().hex[:8].upper()}"
+        }
+    
+    elif submission.node_id in ["product_defect", "contact_human"]:
+        # Create support ticket
+        return {
+            "success": True,
+            "message": "Your request has been submitted. A team member will contact you shortly.",
+            "ticket_number": f"TKT-{uuid.uuid4().hex[:8].upper()}"
+        }
+    
+    else:
+        # Generic form processing
+        return {
+            "success": True,
+            "message": "Thank you for your submission.",
+            "data_received": submission.form_data
+        }
+
+@router.get("/faq/{category}")
+async def get_faq(category: str):
+    """
+    Get frequently asked questions for a category
+    """
+    # This could retrieve from KB or be hardcoded
+    faqs = {
+        "product_info": [
+            {"q": "What materials do you offer?", "a": "We offer graphite, PTFE, rubber, fiber, and metal gaskets."},
+            {"q": "Do you provide custom sizes?", "a": "Yes, we manufacture custom gaskets to your specifications."},
+        ],
+        "order_status": [
+            {"q": "How do I track my order?", "a": "Enter your order number on our Track Order page."},
+            {"q": "What are your shipping options?", "a": "We offer standard, expedited, and overnight shipping."},
+        ],
+        "technical_support": [
+            {"q": "How do I choose the right gasket material?", "a": "Consider temperature, pressure, and chemical compatibility."},
+        ],
+    }
+    
+    return {"category": category, "faqs": faqs.get(category, [])}</code></pre>
+</div>
+
+<div class="step-box">
+    <h4><span class="step-num">7.5</span> Design External Portal UI (React Component)</h4>
+    
+    <div class="action-box">
+        <h5>✅ Action: Create Decision Tree UI Component</h5>
+    </div>
+    
+    <pre><code>// frontend/external-portal/src/components/HelpCenter.tsx
+
+import React, { useState, useEffect } from 'react';
+
+interface TreeNode {
+  id: string;
+  label: string;
+  description: string;
+  icon?: string;
+  action_type?: string;
+  children?: TreeNode[];
+}
+
+interface ExternalResponse {
+  success: boolean;
+  response_type: string;
+  title: string;
+  content: string;
+  sources?: Array<{document: string; relevance: number}>;
+  next_steps?: Array<{label: string; action: string; target?: string}>;
+  form_fields?: Array<{name: string; label: string; type: string; options?: string[]}>;
+  contact_info?: {phone: string; email: string; hours: string};
+}
+
+const HelpCenter: React.FC = () => {
+  const [tree, setTree] = useState<TreeNode | null>(null);
+  const [currentPath, setCurrentPath] = useState<string[]>(['root']);
+  const [response, setResponse] = useState<ExternalResponse | null>(null);
+  const [collectedData, setCollectedData] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    // Load decision tree on mount
+    fetch('/api/external/decision-tree')
+      .then(res => res.json())
+      .then(data => setTree(data.tree));
+  }, []);
+
+  const navigateToNode = async (nodeId: string) => {
+    setLoading(true);
+    
+    try {
+      const res = await fetch('/api/external/navigate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          node_id: nodeId,
+          collected_data: collectedData
+        })
+      });
+      
+      const data = await res.json();
+      setResponse(data);
+      setCurrentPath([...currentPath, nodeId]);
+    } catch (error) {
+      console.error('Navigation error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const goBack = () => {
+    if (currentPath.length > 1) {
+      const newPath = currentPath.slice(0, -1);
+      setCurrentPath(newPath);
+      navigateToNode(newPath[newPath.length - 1]);
+    }
+  };
+
+  const handleFormSubmit = async () => {
+    setLoading(true);
+    
+    try {
+      const res = await fetch('/api/external/submit-form', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          node_id: currentPath[currentPath.length - 1],
+          form_data: collectedData
+        })
+      });
+      
+      const data = await res.json();
+      setResponse({
+        success: true,
+        response_type: 'confirmation',
+        title: 'Submitted!',
+        content: data.message,
+        next_steps: [
+          { label: 'Back to Main Menu', action: 'navigate', target: 'root' }
+        ]
+      });
+    } catch (error) {
+      console.error('Submit error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Render navigation cards
+  const renderNavigationCards = (options: ExternalResponse['next_steps']) => (
+    &lt;div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6"&gt;
+      {options?.map((option) => (
+        &lt;button
+          key={option.target || option.label}
+          onClick={() => option.action === 'navigate' && navigateToNode(option.target!)}
+          className="p-6 bg-white border-2 border-gray-200 rounded-xl hover:border-blue-500 
+                     hover:shadow-lg transition-all text-left"
+        &gt;
+          &lt;h3 className="font-semibold text-lg text-gray-800"&gt;{option.label}&lt;/h3&gt;
+        &lt;/button&gt;
+      ))}
+    &lt;/div&gt;
+  );
+
+  // Render form
+  const renderForm = (fields: ExternalResponse['form_fields']) => (
+    &lt;form className="space-y-4 mt-6"&gt;
+      {fields?.map((field) => (
+        &lt;div key={field.name}&gt;
+          &lt;label className="block text-sm font-medium text-gray-700 mb-1"&gt;
+            {field.label}
+          &lt;/label&gt;
+          {field.type === 'select' ? (
+            &lt;select
+              className="w-full p-3 border rounded-lg"
+              onChange={(e) => setCollectedData({...collectedData, [field.name]: e.target.value})}
+            &gt;
+              &lt;option value=""&gt;Select...&lt;/option&gt;
+              {field.options?.map(opt => (
+                &lt;option key={opt} value={opt}&gt;{opt}&lt;/option&gt;
+              ))}
+            &lt;/select&gt;
+          ) : field.type === 'textarea' ? (
+            &lt;textarea
+              className="w-full p-3 border rounded-lg"
+              rows={3}
+              onChange={(e) => setCollectedData({...collectedData, [field.name]: e.target.value})}
+            /&gt;
+          ) : (
+            &lt;input
+              type={field.type}
+              className="w-full p-3 border rounded-lg"
+              onChange={(e) => setCollectedData({...collectedData, [field.name]: e.target.value})}
+            /&gt;
+          )}
+        &lt;/div&gt;
+      ))}
+      &lt;button
+        type="button"
+        onClick={handleFormSubmit}
+        className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700"
+      &gt;
+        Submit
+      &lt;/button&gt;
+    &lt;/form&gt;
+  );
+
+  // Render info response
+  const renderInfoResponse = () => (
+    &lt;div className="mt-6"&gt;
+      &lt;div className="bg-gray-50 p-6 rounded-xl"&gt;
+        &lt;p className="text-gray-700 whitespace-pre-wrap"&gt;{response?.content}&lt;/p&gt;
+      &lt;/div&gt;
+      
+      {response?.sources && response.sources.length > 0 && (
+        &lt;div className="mt-4 text-sm text-gray-500"&gt;
+          &lt;p&gt;Sources: {response.sources.map(s => s.document).join(', ')}&lt;/p&gt;
+        &lt;/div&gt;
+      )}
+      
+      {renderNavigationCards(response?.next_steps)}
+    &lt;/div&gt;
+  );
+
+  return (
+    &lt;div className="min-h-screen bg-gray-100"&gt;
+      {/* Header */}
+      &lt;header className="bg-blue-900 text-white py-6"&gt;
+        &lt;div className="container mx-auto px-4"&gt;
+          &lt;h1 className="text-2xl font-bold"&gt;JD Jones Customer Help Center&lt;/h1&gt;
+        &lt;/div&gt;
+      &lt;/header&gt;
+
+      {/* Main Content */}
+      &lt;main className="container mx-auto px-4 py-8"&gt;
+        &lt;div className="max-w-2xl mx-auto"&gt;
+          {/* Breadcrumb */}
+          {currentPath.length > 1 && (
+            &lt;button
+              onClick={goBack}
+              className="mb-4 text-blue-600 hover:text-blue-800 flex items-center"
+            &gt;
+              ← Back
+            &lt;/button&gt;
+          )}
+
+          {/* Response Card */}
+          &lt;div className="bg-white rounded-2xl shadow-lg p-8"&gt;
+            {loading ? (
+              &lt;div className="text-center py-8"&gt;
+                &lt;div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"&gt;&lt;/div&gt;
+              &lt;/div&gt;
+            ) : response ? (
+              &lt;&gt;
+                &lt;h2 className="text-2xl font-bold text-gray-800"&gt;{response.title}&lt;/h2&gt;
+                &lt;p className="text-gray-600 mt-2"&gt;{response.response_type === 'navigation' && response.content}&lt;/p&gt;
+                
+                {response.response_type === 'navigation' && renderNavigationCards(response.next_steps)}
+                {response.response_type === 'form' && renderForm(response.form_fields)}
+                {response.response_type === 'info' && renderInfoResponse()}
+                {response.response_type === 'escalation' && (
+                  &lt;&gt;
+                    &lt;div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mt-4"&gt;
+                      &lt;p className="text-yellow-800"&gt;
+                        📞 {response.contact_info?.phone} | ✉️ {response.contact_info?.email}
+                      &lt;/p&gt;
+                      &lt;p className="text-sm text-yellow-700 mt-1"&gt;{response.contact_info?.hours}&lt;/p&gt;
+                    &lt;/div&gt;
+                    {renderForm(response.form_fields)}
+                  &lt;/&gt;
+                )}
+              &lt;/&gt;
+            ) : (
+              &lt;&gt;
+                &lt;h2 className="text-2xl font-bold text-gray-800"&gt;How can we help you today?&lt;/h2&gt;
+                &lt;p className="text-gray-600 mt-2"&gt;Select the option that best describes what you need.&lt;/p&gt;
+                {tree && renderNavigationCards(tree.children?.map(c => ({
+                  label: c.label,
+                  action: 'navigate',
+                  target: c.id
+                })))}
+              &lt;/&gt;
+            )}
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/main&gt;
+    &lt;/div&gt;
+  );
+};
+
+export default HelpCenter;</code></pre>
+</div>
+
+<div class="deliverable">
+    <h5>📦 Phase 7 Deliverables</h5>
+    <ul class="checklist">
+        <li>Customer intent taxonomy with decision tree structure</li>
+        <li>Intent classifier for free-text (optional input)</li>
+        <li>External response generator with KB integration</li>
+        <li>External portal API endpoints</li>
+        <li>React-based decision tree UI component</li>
+        <li>Form handling and escalation flow</li>
+    </ul>
+</div>
+
+</section>
+
+<!-- ==================== PHASE 8 ==================== -->
+<section id="phase8">
+<div class="phase-header">
+    <div class="phase-num">8</div>
+    <h2>Testing, Deployment & Monitoring</h2>
+</div>
+
+<p><strong>Duration:</strong> 2-3 weeks | <strong>Team:</strong> QA, DevOps, All stakeholders</p>
+
+<div class="step-box">
+    <h4><span class="step-num">8.1</span> Testing Checklist</h4>
+    
+    <div class="action-box">
+        <h5>✅ Action: Execute Comprehensive Testing</h5>
+    </div>
+    
+    <table>
+        <tr>
+            <th>Test Type</th>
+            <th>What to Test</th>
+            <th>Pass Criteria</th>
+        </tr>
+        <tr>
+            <td><strong>Unit Tests</strong></td>
+            <td>Document processing, embedding generation, retrieval functions</td>
+            <td>100% of critical functions covered</td>
+        </tr>
+        <tr>
+            <td><strong>Integration Tests</strong></td>
+            <td>API endpoints, database connections, vector store operations</td>
+            <td>All endpoints return expected responses</td>
+        </tr>
+        <tr>
+            <td><strong>Access Control Tests</strong></td>
+            <td>Role-based access, department filtering</td>
+            <td>Users only see authorized content</td>
+        </tr>
+        <tr>
+            <td><strong>RAG Quality Tests</strong></td>
+            <td>Retrieval relevance, response accuracy</td>
+            <td>>85% relevant retrievals, <5% hallucinations</td>
+        </tr>
+        <tr>
+            <td><strong>Load Tests</strong></td>
+            <td>Concurrent users, response times</td>
+            <td><2s response time under 100 concurrent users</td>
+        </tr>
+        <tr>
+            <td><strong>UAT (User Acceptance)</strong></td>
+            <td>Real users test actual workflows</td>
+            <td>Stakeholder sign-off from each department</td>
+        </tr>
+    </table>
+</div>
+
+<div class="step-box">
+    <h4><span class="step-num">8.2</span> Deployment Configuration</h4>
+    
+    <div class="action-box">
+        <h5>✅ Action: Create Production Deployment</h5>
+    </div>
+    
+    <pre><code># docker-compose.prod.yml
+
+version: '3.8'
+
+services:
+  api:
+    image: jdjones/rag-api:${TAG:-latest}
+    deploy:
+      replicas: 3
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
+    environment:
+      - ENVIRONMENT=production
+      - DEBUG=false
+    secrets:
+      - openai_api_key
+      - db_password
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./certs:/etc/nginx/certs
+
+  # ... other services
+
+secrets:
+  openai_api_key:
+    external: true
+  db_password:
+    external: true</code></pre>
+</div>
+
+<div class="step-box">
+    <h4><span class="step-num">8.3</span> Monitoring & Analytics</h4>
+    
+    <div class="action-box">
+        <h5>✅ Action: Set Up Monitoring Dashboard</h5>
+    </div>
+    
+    <p>Track these key metrics:</p>
+    
+    <table>
+        <tr>
+            <th>Metric</th>
+            <th>Target</th>
+            <th>Alert Threshold</th>
+        </tr>
+        <tr>
+            <td>API Response Time (P95)</td>
+            <td>< 2 seconds</td>
+            <td>> 5 seconds</td>
+        </tr>
+        <tr>
+            <td>RAG Retrieval Relevance</td>
+            <td>> 85%</td>
+            <td>< 70%</td>
+        </tr>
+        <tr>
+            <td>User Satisfaction (thumbs up/down)</td>
+            <td>> 80%</td>
+            <td>< 60%</td>
+        </tr>
+        <tr>
+            <td>External Portal Completion Rate</td>
+            <td>> 70%</td>
+            <td>< 50%</td>
+        </tr>
+        <tr>
+            <td>Escalation Rate (external)</td>
+            <td>< 20%</td>
+            <td>> 40%</td>
+        </tr>
+    </table>
+</div>
+
+<div class="success-box">
+    <strong>✅ Implementation Complete!</strong>
+    <p>Your JD Jones RAG system is now operational with:</p>
+    <ul>
+        <li>Hierarchical knowledge base (Main + Department contexts)</li>
+        <li>Access-controlled internal AI agent for employees</li>
+        <li>Guided decision tree for external customers</li>
+        <li>Full monitoring and analytics</li>
+    </ul>
+</div>
+
+</section>
+
+<!-- ==================== APPENDIX ==================== -->
+<section id="appendix">
+<h2>Appendix: Quick Reference</h2>
+
+<h3>A. Complete API Endpoints</h3>
+
+<table>
+    <tr>
+        <th>Endpoint</th>
+        <th>Method</th>
+        <th>Auth</th>
+        <th>Purpose</th>
+    </tr>
+    <tr>
+        <td><code>/internal/chat</code></td>
+        <td>POST</td>
+        <td>JWT (Internal)</td>
+        <td>Send message to internal agent</td>
+    </tr>
+    <tr>
+        <td><code>/internal/sessions/{id}/history</code></td>
+        <td>GET</td>
+        <td>JWT (Internal)</td>
+        <td>Get conversation history</td>
+    </tr>
+    <tr>
+        <td><code>/external/decision-tree</code></td>
+        <td>GET</td>
+        <td>None</td>
+        <td>Get customer decision tree</td>
+    </tr>
+    <tr>
+        <td><code>/external/navigate</code></td>
+        <td>POST</td>
+        <td>None</td>
+        <td>Navigate decision tree</td>
+    </tr>
+    <tr>
+        <td><code>/external/submit-form</code></td>
+        <td>POST</td>
+        <td>None</td>
+        <td>Submit customer form</td>
+    </tr>
+    <tr>
+        <td><code>/admin/ingest</code></td>
+        <td>POST</td>
+        <td>JWT (Admin)</td>
+        <td>Trigger document ingestion</td>
+    </tr>
+</table>
+
+<h3>B. Project Timeline Summary</h3>
+
+<table>
+    <tr>
+        <th>Phase</th>
+        <th>Duration</th>
+        <th>Key Deliverables</th>
+    </tr>
+    <tr>
+        <td>1. Data Audit</td>
+        <td>2-3 weeks</td>
+        <td>Inventory, access matrix, processed docs</td>
+    </tr>
+    <tr>
+        <td>2. Infrastructure</td>
+        <td>1-2 weeks</td>
+        <td>Docker, databases, project structure</td>
+    </tr>
+    <tr>
+        <td>3. Main Context DB</td>
+        <td>2 weeks</td>
+        <td>Company-wide KB, embeddings</td>
+    </tr>
+    <tr>
+        <td>4. Level Contexts</td>
+        <td>2 weeks</td>
+        <td>Department KBs, retriever</td>
+    </tr>
+    <tr>
+        <td>5. Access Control</td>
+        <td>1-2 weeks</td>
+        <td>Auth, authorization</td>
+    </tr>
+    <tr>
+        <td>6. Internal Agent</td>
+        <td>2-3 weeks</td>
+        <td>AI chatbot, API, UI</td>
+    </tr>
+    <tr>
+        <td>7. External System</td>
+        <td>3-4 weeks</td>
+        <td>Decision tree, classifier, portal UI</td>
+    </tr>
+    <tr>
+        <td>8. Testing & Deploy</td>
+        <td>2-3 weeks</td>
+        <td>QA, deployment, monitoring</td>
+    </tr>
+    <tr>
+        <td><strong>TOTAL</strong></td>
+        <td><strong>15-21 weeks</strong></td>
+        <td></td>
+    </tr>
+</table>
+
+</section>
+
+</div>
+
+<footer>
+    <p><strong>JD Jones RAG System Implementation Workflow</strong></p>
+    <p>Complete Step-by-Step Guide | Version 1.0 | February 2026</p>
+</footer>
+
+</body>
+</html>

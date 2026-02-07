@@ -1,0 +1,105 @@
+# JD Jones RAG - Ingress Configuration
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: jd-jones-ingress
+  namespace: jd-jones-rag
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+spec:
+  tls:
+  - hosts:
+    - api.jdjones.com
+    - portal.jdjones.com
+    - support.jdjones.com
+    secretName: jd-jones-tls
+  rules:
+  # API Backend
+  - host: api.jdjones.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: api
+            port:
+              number: 8000
+  # Internal Portal (Employee Dashboard)
+  - host: portal.jdjones.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: internal-portal
+            port:
+              number: 3000
+  # External Portal (Customer Support)
+  - host: support.jdjones.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: external-portal
+            port:
+              number: 3000
+---
+# Network Policies for Security
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-to-api
+  namespace: jd-jones-rag
+spec:
+  podSelector:
+    matchLabels:
+      app: api
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+    - podSelector:
+        matchLabels:
+          app: internal-portal
+    - podSelector:
+        matchLabels:
+          app: external-portal
+    ports:
+    - protocol: TCP
+      port: 8000
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: database-access
+  namespace: jd-jones-rag
+spec:
+  podSelector:
+    matchLabels:
+      app: postgres
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          component: backend
+    - podSelector:
+        matchLabels:
+          component: worker
+    ports:
+    - protocol: TCP
+      port: 5432
