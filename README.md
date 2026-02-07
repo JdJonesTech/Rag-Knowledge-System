@@ -154,6 +154,3 @@ Detailed documentation is available for collaborators:
 - Encrypted sensitive data in environment variables
 - CORS configuration for frontend applications
 
-## License
-
-MIT License - see LICENSE file for details.
