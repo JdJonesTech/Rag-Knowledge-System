@@ -98,10 +98,10 @@ def sync_all_users(self) -> Dict[str, Any]:
     Returns:
         Summary of all sync operations
     """
-    from src.super_memory.memory_manager import MemoryManager
+    from src.super_memory.memory_manager import SuperMemoryManager
     
     try:
-        memory_manager = MemoryManager()
+        memory_manager = SuperMemoryManager()
         
         # Get all users with auto-sync enabled
         users = run_async(memory_manager.get_auto_sync_users())
@@ -139,10 +139,10 @@ def cleanup_old_logs(self, days_to_keep: int = 30) -> Dict[str, Any]:
     Returns:
         Cleanup summary
     """
-    from src.super_memory.memory_manager import MemoryManager
+    from src.super_memory.memory_manager import SuperMemoryManager
     
     try:
-        memory_manager = MemoryManager()
+        memory_manager = SuperMemoryManager()
         
         cutoff_date = datetime.utcnow() - timedelta(days=days_to_keep)
         deleted_count = run_async(memory_manager.cleanup_old_sync_logs(cutoff_date))
@@ -172,10 +172,10 @@ def refresh_embeddings(self, batch_size: int = 100) -> Dict[str, Any]:
     Returns:
         Refresh summary
     """
-    from src.super_memory.memory_manager import MemoryManager
+    from src.super_memory.memory_manager import SuperMemoryManager
     
     try:
-        memory_manager = MemoryManager()
+        memory_manager = SuperMemoryManager()
         
         refreshed_count = run_async(
             memory_manager.refresh_all_embeddings(batch_size=batch_size)
@@ -211,10 +211,10 @@ def process_conversation_summary(
     Returns:
         Processing result
     """
-    from src.super_memory.memory_manager import MemoryManager
+    from src.super_memory.memory_manager import SuperMemoryManager
     
     try:
-        memory_manager = MemoryManager()
+        memory_manager = SuperMemoryManager()
         
         summary = run_async(
             memory_manager.summarize_and_store_conversation(
@@ -258,10 +258,18 @@ def extract_memories_from_conversation(
     try:
         learner = MemoryLearner()
         
-        memories = run_async(
-            learner.extract_memories_from_conversation(
+        # Convert messages to {query, response} interaction pairs
+        interactions = []
+        for i in range(0, len(messages) - 1, 2):
+            query = messages[i].get("content", "") if messages[i].get("role") == "user" else ""
+            response = messages[i + 1].get("content", "") if i + 1 < len(messages) else ""
+            if query:
+                interactions.append({"query": query, "response": response})
+        
+        result = run_async(
+            learner.batch_learn(
                 user_id=user_id,
-                messages=messages
+                interactions=interactions
             )
         )
         
@@ -269,7 +277,7 @@ def extract_memories_from_conversation(
             "status": "success",
             "user_id": user_id,
             "session_id": session_id,
-            "memories_extracted": len(memories)
+            "memories_extracted": result.get("total_memories_created", 0)
         }
         
     except Exception as e:

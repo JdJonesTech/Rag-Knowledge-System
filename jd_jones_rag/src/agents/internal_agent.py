@@ -30,10 +30,17 @@ class InternalAgent:
     def __init__(self):
         """Initialize the internal agent."""
         from src.config.settings import get_llm
-        self.llm = get_llm(temperature=settings.llm_temperature)
+        # Dual strategy: Creative temperature (0.7) for intelligent, natural responses
+        # + GroundingValidator catches any fabricated specs post-generation.
+        # This gives engaging customer/team responses that are factually accurate.
+        self.llm = get_llm(temperature=0.7)
         
         self.retriever = HierarchicalRetriever()
         self.system_prompt = self._load_system_prompt()
+        
+        # Programmatic grounding validator (anti-hallucination)
+        from src.retrieval.grounding_validator import get_grounding_validator
+        self.grounding_validator = get_grounding_validator()
         
         # Session storage (in-memory, use Redis in production)
         self.sessions: Dict[str, List[Dict[str, str]]] = {}
@@ -126,6 +133,33 @@ Remember: You are here to help employees be more productive. Be accurate and hel
                 from src.data_ingestion.product_catalog_retriever import get_product_retriever
                 retriever = get_product_retriever()
                 
+                # Step 1: Check if user is asking about a specific product code
+                # Extract product codes from query (e.g., "NA 701", "NA715", "na-701")
+                code_pattern = re.compile(r'\bNA\s*[-]?\s*(\d+[A-Z]*)\b', re.IGNORECASE)
+                code_matches = code_pattern.findall(query)
+                
+                direct_results = []
+                if code_matches:
+                    for code_num in code_matches:
+                        normalized_code = f"NA {code_num.upper()}"
+                        details = retriever.get_product_details(normalized_code)
+                        if details:
+                            # Create a ProductMatch-like object for consistent handling
+                            from src.data_ingestion.product_catalog_retriever import ProductMatch, MatchConfidence
+                            product = retriever.catalog.get_product_by_code(normalized_code)
+                            if product:
+                                direct_results.append(ProductMatch(
+                                    product=product,
+                                    score=100.0,
+                                    confidence=MatchConfidence.HIGH,
+                                    match_reasons=[f"Direct code match: {normalized_code}"]
+                                ))
+                    
+                    if direct_results:
+                        logger.info(f"Direct product code lookup found {len(direct_results)} products")
+                        return direct_results
+                
+                # Step 2: Fall back to parametric search
                 # Extract parameters from query
                 temp_match = re.search(r'(\d+)\s*°?C|(\d+)\s*degrees?|high\s+temp|extreme\s+temp', query.lower())
                 operating_temp = None
@@ -232,28 +266,50 @@ Product #{i}: **{product.code}** - {product.name}
         
         # Build system prompt with user context
         full_context = context + product_context
-        system_content = self.system_prompt.format(
-            user_name=user.full_name,
-            user_role=user.role,
-            user_department=user.department or "General",
-            context=full_context
+        
+        # PRE-GENERATION: Grounding sufficiency check
+        is_sufficient, fallback = self.grounding_validator.check_context_sufficiency(
+            context=full_context,
+            product_matches=product_matches,
+            query=query
         )
         
-        # Build messages
-        messages = [SystemMessage(content=system_content)]
-        
-        # Add conversation history (last 6 messages)
-        for msg in conversation_history[-6:]:
-            if msg["role"] == "user":
-                messages.append(HumanMessage(content=msg["content"]))
-            else:
-                messages.append(AIMessage(content=msg["content"]))
-        
-        # Add current query
-        messages.append(HumanMessage(content=query))
-        
-        # Generate response
-        response = await self.llm.ainvoke(messages)
+        if not is_sufficient and fallback:
+            # Short-circuit: don't even ask the LLM if we have no data
+            response_text = fallback
+        else:
+            system_content = self.system_prompt.format(
+                user_name=user.full_name,
+                user_role=user.role,
+                user_department=user.department or "General",
+                context=full_context
+            )
+            
+            # Build messages
+            messages = [SystemMessage(content=system_content)]
+            
+            # Add conversation history (last 6 messages)
+            for msg in conversation_history[-6:]:
+                if msg["role"] == "user":
+                    messages.append(HumanMessage(content=msg["content"]))
+                else:
+                    messages.append(AIMessage(content=msg["content"]))
+            
+            # Add current query
+            messages.append(HumanMessage(content=query))
+            
+            # Generate response
+            llm_response = await self.llm.ainvoke(messages)
+            
+            # POST-GENERATION: Grounding validation
+            grounding_result = self.grounding_validator.validate_response(
+                response=llm_response.content,
+                context=full_context,
+                product_matches=product_matches,
+                query=query
+            )
+            
+            response_text = grounding_result.validated_response
         
         # Extract sources from retrieval results
         sources = []
@@ -277,14 +333,14 @@ Product #{i}: **{product.code}** - {product.name}
         
         # Update conversation history
         conversation_history.append({"role": "user", "content": query})
-        conversation_history.append({"role": "assistant", "content": response.content})
+        conversation_history.append({"role": "assistant", "content": response_text})
         
         # Save to session
         if session_id:
             self.sessions[session_id] = conversation_history
         
         return {
-            "response": response.content,
+            "response": response_text,
             "sources": sources,
             "session_id": session_id or self._generate_session_id(),
             "metadata": {

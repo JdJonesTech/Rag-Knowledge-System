@@ -7,9 +7,11 @@
 node_modules/
 dist/
 build/
+.next/
 *.pyc
 __pycache__/
 .pytest_cache/
+*.egg-info/
 
 # Data/Logs (Knowledgebase)
 data/
@@ -21,6 +23,46 @@ monitoring/
 sql/
 tests/
 
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+chroma/
+
+# Archives
+*.zip
+*.tar.gz
+*.tar
+
+# Documentation (exclude non-essential .md files)
+# Keep only: README.md, COLLABORATION.md, CONTRIBUTING.md, QUICK_START.md at root
+docs/
+jd_jones_rag/docs/
+*.md
+!README.md
+!COLLABORATION.md
+!CONTRIBUTING.md
+!QUICK_START.md
+!jd_jones_rag/README.md
+!jd_jones_rag/COLLABORATION.md
+!jd_jones_rag/QUICK_START.md
+!jd_jones_rag/k8s/README.md
+
+# Coverage & Test artifacts
+test_coverage.py
+htmlcov/
+.coverage
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
 # OS files
 .DS_Store
 Thumbs.db
+
+# Gemini / Agent
+.gemini/
+.agent/

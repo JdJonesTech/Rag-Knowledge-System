@@ -311,6 +311,7 @@ class HybridRetrieval:
         Enhanced with:
         - Query Expansion (+15% coverage)
         - Reciprocal Rank Fusion (+20-35% recall)
+        - Metadata-filtered product code search (inverted index)
         
         Args:
             query: Search query
@@ -328,12 +329,71 @@ class HybridRetrieval:
                 logger.debug(f"Query expanded: '{query}' -> '{expanded[:100]}...'")
                 search_query = expanded
         
+        # Step 0.5: Inverted-index style metadata-filtered search
+        # If query contains a product code, do a targeted search using metadata
+        query_codes = self._extract_product_codes(query)
+        metadata_results = []
+        if query_codes:
+            for code in query_codes:
+                try:
+                    # Filter ChromaDB by product_code metadata (inverted index)
+                    code_filtered = self.main_context.query(
+                        query_text=search_query,
+                        n_results=10,
+                        include_public_only=include_public_only,
+                        filter_metadata={"product_code": code}
+                    )
+                    metadata_results.extend(code_filtered)
+                    logger.debug(
+                        f"Metadata filter for '{code}': {len(code_filtered)} results"
+                    )
+                except Exception as e:
+                    logger.debug(f"Metadata filter failed for '{code}': {e}")
+        
         # Step 1: Get vector results (semantic search)
         vector_results = self.main_context.query(
             query_text=search_query,
             n_results=min(n_results * 3, 50),  # Get extra for re-ranking
             include_public_only=include_public_only
         )
+        
+        # Merge metadata results INTO FRONT of vector results
+        # KEY: Move ALL code-matched results to front (both new AND existing)
+        # This gives them naturally top RRF ranks
+        #
+        # IMPORTANT: Use file_name metadata for dedup, NOT document_id!
+        # document_id is generic ('structured', 'product', 'catalog') and NOT unique.
+        # file_name is unique per chunk (e.g., 'structured_na_715_specifications_13')
+        metadata_file_names = set()
+        if metadata_results:
+            def _get_uid(r):
+                """Get unique identifier for a result."""
+                return r.metadata.get("file_name", "") or f"{r.document_id}_{r.chunk_index}"
+            
+            metadata_file_names = {_get_uid(r) for r in metadata_results}
+            existing_file_names = {_get_uid(r) for r in vector_results}
+            
+            # Split vector_results: matched vs unmatched
+            matched = []
+            unmatched = []
+            for vr in vector_results:
+                if _get_uid(vr) in metadata_file_names:
+                    matched.append(vr)
+                else:
+                    unmatched.append(vr)
+            
+            # Add metadata results not already in vector_results
+            for mr in metadata_results:
+                if _get_uid(mr) not in existing_file_names:
+                    matched.append(mr)
+            
+            # Rebuild: matched first, then unmatched
+            vector_results = matched + unmatched
+            
+            logger.debug(
+                f"After metadata merge: {len(matched)} code-matched at front, "
+                f"{len(unmatched)} others behind, {len(vector_results)} total"
+            )
         
         if not vector_results:
             return []
@@ -371,7 +431,7 @@ class HybridRetrieval:
             # Calculate RRF score if enabled
             rrf_score = 0.0
             if self.rrf and self.use_rrf:
-                vector_rank = i + 1  # Vector results are already ranked
+                vector_rank = i + 1  # Metadata results are prepended, so they're rank 1,2,3...
                 keyword_rank = keyword_rank_map.get(i, len(vector_results))
                 
                 # RRF formula: 1/(k + rank)
@@ -392,6 +452,15 @@ class HybridRetrieval:
             # Extra boost for exact product code matches
             if is_exact_match:
                 combined_score = combined_score * 1.3
+            
+            # Additional boost for structured product chunks with matching code
+            chunk_product_code = result.metadata.get("product_code", "")
+            if chunk_product_code and self._normalize_product_code(chunk_product_code) in query_codes:
+                combined_score = combined_score * 2.5  # Strong boost for exact code match
+                # Extra boost for specification chunks specifically
+                section_type = result.metadata.get("section_type", "")
+                if section_type == "specifications":
+                    combined_score = combined_score * 1.5
             
             ranked_results.append(RankedResult(
                 content=result.content,

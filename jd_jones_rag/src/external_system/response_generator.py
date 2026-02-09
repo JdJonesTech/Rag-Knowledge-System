@@ -40,13 +40,21 @@ You help customers with:
 - Technical support
 - Returns and warranty questions
 
-GUIDELINES:
+STRICT GUIDELINES:
 1. Be friendly, professional, and helpful
-2. Only provide information from the given context
-3. If you don't have specific information, offer to connect them with the right team
-4. Keep responses concise but complete
-5. Always include relevant next steps or options
-6. Never make up specifications, prices, or policies
+2. ONLY provide information from the given context — NEVER fabricate specifications
+3. If a product specification (temperature, pressure, pH, speed) is NOT in the context below, DO NOT provide one
+4. If you don't have specific information, say: "I don't have that information available. Let me connect you with our technical team."
+5. Keep responses concise but complete
+6. Always include relevant next steps or options
+7. NEVER use "typically", "usually", or "generally" for specific product specs
+8. If asked to "check again" or "try harder" for missing data, DO NOT invent numbers — repeat what you know and offer to connect them with experts
+
+PRODUCT SPECIFICATION PROTOCOL:
+- Only quote specs that appear VERBATIM in the context below
+- Temperature, pressure, pH, speed values MUST come from the context — not from your training data
+- If context says "Temperature: -240°C to 650°C", quote exactly "-240°C to 650°C"
+- For missing specs, say: "I recommend checking our product data sheet for exact specifications. Would you like me to arrange a callback from our technical team?"
 
 CONTEXT FROM KNOWLEDGE BASE:
 {context}
@@ -54,12 +62,15 @@ CONTEXT FROM KNOWLEDGE BASE:
 CUSTOMER INTENT: {intent}
 EXTRACTED INFORMATION: {entities}
 
-Respond naturally to the customer's query."""
+Respond naturally to the customer's query. Remember: it is better to say "I don't have that data" than to provide incorrect specifications."""
     
     def __init__(self):
         """Initialize response generator with caching."""
         from src.config.settings import get_llm
-        self.llm = get_llm(temperature=0.3)
+        # Dual strategy: Creative temperature (0.7) for intelligent, natural
+        # customer responses + GroundingValidator enforces factual accuracy
+        # post-generation. The validator is the real guard, not temperature.
+        self.llm = get_llm(temperature=0.7)
         
         # Use hybrid retrieval with RRF and Query Expansion
         from src.retrieval.enhanced_retrieval import HybridRetrieval
@@ -71,6 +82,10 @@ Respond naturally to the customer's query."""
             use_query_expansion=True
         )
         self.knowledge_base = MainContextDatabase()
+        
+        # Programmatic grounding validator (anti-hallucination)
+        from src.retrieval.grounding_validator import get_grounding_validator
+        self.grounding_validator = get_grounding_validator()
         
         # Initialize FAQ Prompt Cache for instant FAQ responses
         self.faq_cache = None
@@ -200,6 +215,33 @@ Please have your:
                 from src.data_ingestion.product_catalog_retriever import get_product_retriever
                 retriever = get_product_retriever()
                 
+                # Step 1: Check if user is asking about a specific product code
+                # Extract product codes from query (e.g., "NA 701", "NA715", "na-701")
+                code_pattern = re.compile(r'\bNA\s*[-]?\s*(\d+[A-Z]*)\b', re.IGNORECASE)
+                code_matches = code_pattern.findall(query)
+                
+                direct_results = []
+                if code_matches:
+                    for code_num in code_matches:
+                        normalized_code = f"NA {code_num.upper()}"
+                        details = retriever.get_product_details(normalized_code)
+                        if details:
+                            # Create a ProductMatch-like object for consistent handling
+                            from src.data_ingestion.product_catalog_retriever import ProductMatch, MatchConfidence
+                            product = retriever.catalog.get_product_by_code(normalized_code)
+                            if product:
+                                direct_results.append(ProductMatch(
+                                    product=product,
+                                    score=100.0,
+                                    confidence=MatchConfidence.HIGH,
+                                    match_reasons=[f"Direct code match: {normalized_code}"]
+                                ))
+                    
+                    if direct_results:
+                        logger.debug(f"Direct product code lookup found {len(direct_results)} products")
+                        return direct_results
+                
+                # Step 2: Fall back to parametric search
                 # Extract parameters from query
                 temp_match = re.search(r'(\d+)\s*°?C|(\d+)\s*degrees?|high\s+temp|extreme\s+temp', query.lower())
                 operating_temp = None
@@ -307,29 +349,50 @@ Product #{i}: {product.code} - {product.name}
                     conversation_context += f"{role}: {msg['content']}\n"
         
         # Build prompt with conversation context
-        system_content = self.SYSTEM_PROMPT.format(
+        
+        # PRE-GENERATION: Grounding sufficiency check
+        is_sufficient, fallback = self.grounding_validator.check_context_sufficiency(
             context=context + product_context,
-            intent=classification.primary_intent.value,
-            entities=entities_str
+            product_matches=product_matches,
+            query=query
         )
         
-        # Add conversation context instruction
-        if conversation_context:
-            system_content += conversation_context
-            system_content += "\nIMPORTANT: The customer's current message may be a follow-up or reference to the conversation above. Interpret their intent based on the full conversation context."
-        
-        messages = [
-            SystemMessage(content=system_content),
-            HumanMessage(content=query)
-        ]
-        
-        # Generate response
-        try:
-            response = await self.llm.ainvoke(messages)
-            response_text = response.content
-        except Exception as e:
-            # Fallback to template response
-            response_text = self._get_fallback_response(classification.primary_intent)
+        if not is_sufficient and fallback:
+            # Short-circuit: don't invoke the LLM if we have no data
+            response_text = fallback
+        else:
+            system_content = self.SYSTEM_PROMPT.format(
+                context=context + product_context,
+                intent=classification.primary_intent.value,
+                entities=entities_str
+            )
+            
+            # Add conversation context instruction
+            if conversation_context:
+                system_content += conversation_context
+                system_content += "\nIMPORTANT: The customer's current message may be a follow-up or reference to the conversation above. Interpret their intent based on the full conversation context."
+            
+            messages = [
+                SystemMessage(content=system_content),
+                HumanMessage(content=query)
+            ]
+            
+            # Generate response
+            try:
+                response = await self.llm.ainvoke(messages)
+                raw_response = response.content
+            except Exception as e:
+                # Fallback to template response
+                raw_response = self._get_fallback_response(classification.primary_intent)
+            
+            # POST-GENERATION: Grounding validation
+            grounding_result = self.grounding_validator.validate_response(
+                response=raw_response,
+                context=context + product_context,
+                product_matches=product_matches,
+                query=query
+            )
+            response_text = grounding_result.validated_response
         
         # Extract sources
         sources = [
@@ -365,8 +428,10 @@ Product #{i}: {product.code} - {product.name}
             return "No specific information available in the knowledge base."
         
         context_parts = []
-        for result in results[:5]:
-            if result.relevance_score > 0.6:
+        for result in results[:8]:  # Include more results
+            # Lowered threshold from 0.6 to 0.3 to avoid discarding
+            # marginally-relevant chunks that may contain useful product info
+            if result.relevance_score > 0.3:
                 context_parts.append(
                     f"[{result.metadata.get('file_name', 'Source')}]: {result.content}"
                 )

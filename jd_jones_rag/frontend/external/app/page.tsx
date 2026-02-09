@@ -200,7 +200,7 @@ export default function ExternalPortal() {
                     boxShadow: '0 2px 6px rgba(149, 40, 37, 0.3)',
                   }}
                 >
-                  <div style={{ fontWeight: '600', marginBottom: '0.25rem' }}>Product Selection Wizard</div>
+                  <div style={{ fontWeight: '600', marginBottom: '0.25rem' }}>Product Selection Helper</div>
                   <div style={{ fontSize: '0.75rem', opacity: 0.9 }}>Find the right product for your application</div>
                 </button>
                 <button
@@ -423,7 +423,7 @@ export default function ExternalPortal() {
             </div>
           )}
 
-          {/* Product Selection Wizard View */}
+          {/* Product Selection Helper View */}
           {view === 'wizard' && (
             <div style={{
               backgroundColor: 'white',

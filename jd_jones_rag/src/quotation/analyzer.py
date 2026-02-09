@@ -405,7 +405,7 @@ class SpecificationsRecommenderAgent:
     - Specific requirements (colour options, material grade options)
     
     NOTE: Does NOT suggest codes, certifications, or operating conditions as these
-    are already collected in the Product Selection Wizard.
+    are already collected in the Product Selection Helper.
     """
     
     def __init__(self, llm: BaseChatModel):

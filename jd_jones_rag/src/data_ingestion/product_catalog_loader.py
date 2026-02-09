@@ -192,7 +192,25 @@ class ProductCatalogLoader:
             url_parts = url.split('/')
             if url_parts:
                 last_part = url_parts[-1]
-                # Extract NA code from URL slug
+                # Check for combination/multi-product URLs first
+                # e.g. "na-701-707-graphite-combination..." => "NA 701 + 707"
+                combo_match = re.search(
+                    r'na[-_]?(\d+[a-z]*)[-_](\d+[a-z]*)[-_]',
+                    last_part, re.IGNORECASE
+                )
+                if combo_match:
+                    code1 = combo_match.group(1).upper()
+                    code2 = combo_match.group(2).upper()
+                    # Only treat as combo if both are plausible product numbers
+                    # and URL slug suggests a combination/set
+                    combo_keywords = ['combination', 'set', 'packing-set']
+                    slug_lower = last_part.lower()
+                    if any(kw in slug_lower for kw in combo_keywords) or (
+                        len(code2) >= 2 and code2.isdigit()
+                    ):
+                        return f"NA {code1} + {code2}"
+                
+                # Extract single NA code from URL slug
                 match = re.search(r'na[-_]?(\d+[a-z]*)', last_part, re.IGNORECASE)
                 if match:
                     return f"NA {match.group(1).upper()}"
@@ -395,6 +413,12 @@ class ProductCatalogLoader:
         
         return "JD Jones industrial sealing product"
     
+    def _is_standalone_product_url(self, url: str) -> bool:
+        """Check if URL points to a standalone product page (not a combo/set)."""
+        combo_indicators = ['combination', '-set', '+', 'packing-set']
+        url_lower = url.lower()
+        return not any(ind in url_lower for ind in combo_indicators)
+    
     def parse_product(self, doc: Dict[str, Any]) -> Optional[Product]:
         """Parse a single document into a Product."""
         content = doc.get('content', '')
@@ -409,9 +433,18 @@ class ProductCatalogLoader:
         if not code:
             return None
         
-        # Skip duplicates
+        # Handle duplicates: prefer standalone product pages over combo pages
         if code in self.products:
-            return None
+            existing = self.products[code]
+            # If existing entry is from a combo URL and new one is standalone,
+            # overwrite with standalone (more accurate specs)
+            if (not self._is_standalone_product_url(existing.source_url) 
+                and self._is_standalone_product_url(source_url)):
+                logger.info(
+                    f"Overwriting combo product {code} with standalone page: {source_url}"
+                )
+            else:
+                return None  # Keep existing entry
         
         product = Product(
             code=code,

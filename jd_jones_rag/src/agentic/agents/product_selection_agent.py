@@ -631,7 +631,11 @@ class ProductSelectionAgent:
                         "confidence": rec.get("confidence", "medium"),
                         "certifications": rec.get("certifications", []),
                         "applications": rec.get("applications", []),
-                        "source_url": rec.get("source_url", "")
+                        "source_url": rec.get("source_url", ""),
+                        "features": rec.get("features", []),
+                        "material": rec.get("material", ""),
+                        "industries": rec.get("industries", []),
+                        "recommendation_text": rec.get("recommendation_text", ""),
                     })
                 
             except Exception as e:
@@ -650,9 +654,9 @@ class ProductSelectionAgent:
                         "type": product["type"],
                         "score": score,
                         "specifications": {
-                            "max_temperature": f"{product['max_temp']}°C",
-                            "max_pressure": f"{product['max_pressure']} bar",
-                            "certifications": product["certifications"]
+                            "max_temperature": f"{product.get('max_temp', 'N/A')}°C",
+                            "max_pressure": f"{product.get('max_pressure', 'N/A')} bar",
+                            "certifications": product.get("certifications", [])
                         },
                         "warnings": warnings,
                         "match_reasons": self._get_match_reasons(product, params)
@@ -685,81 +689,138 @@ class ProductSelectionAgent:
         product: Dict[str, Any],
         params: Dict[str, Any]
     ) -> Tuple[float, List[str]]:
-        """Score a product against requirements. Returns 0-100 percentage."""
-        score = 50  # Base score for any product that qualifies
-        max_bonus = 50  # Additional points possible
-        bonus = 0
+        """Score a product against requirements using weighted multi-signal scoring.
+        
+        Returns a (score, warnings) tuple where score is 0-100.
+        Uses additive scoring across independent dimensions so that a product
+        matching 5 criteria always outranks one matching only 2.
+        """
+        # Weights mirror the retriever's scoring
+        W_TEMP = 25
+        W_PRESSURE = 20
+        W_CERTIFICATION = 15
+        W_INDUSTRY = 15
+        W_APPLICATION = 15
+        W_MEDIA = 10
+        MAX_RAW = W_TEMP + W_PRESSURE + W_CERTIFICATION + W_INDUSTRY + W_APPLICATION + W_MEDIA
+        
+        raw_score = 0.0
         warnings = []
         
-        # Parse temperature requirement
+        # ------ Temperature ------
         temp_str = params.get("temperature", params.get("max_temperature", ""))
-        required_temp = self._parse_temp_range(temp_str)
+        required_temp = self._parse_temp_range(str(temp_str)) if temp_str else None
         
-        if required_temp:
-            if product["max_temp"] >= required_temp:
-                bonus += 10
-                if product["max_temp"] < required_temp * 1.2:
-                    warnings.append(f"Temperature margin is tight - consider higher rated option")
+        max_temp = product.get("max_temp")
+        min_temp = product.get("min_temp")
+        
+        if required_temp is not None and max_temp is not None:
+            if max_temp >= required_temp:
+                raw_score += W_TEMP
+                # Tight margin warning
+                if max_temp < required_temp * 1.15:
+                    warnings.append("Temperature margin is tight - consider higher rated option")
+            elif max_temp >= required_temp * 0.85:
+                raw_score += W_TEMP * 0.3  # Marginal
+                warnings.append(f"Max temp ({max_temp}°C) is below requirement ({required_temp}°C)")
             else:
-                score -= 20  # Penalty but don't disqualify
-        else:
-            bonus += 5  # No specific temp requirement, give partial credit
+                return 0, ["Temperature far below requirement"]  # Disqualify
+        elif required_temp is None:
+            raw_score += W_TEMP * 0.3  # No temp constraint -> partial credit
         
-        # Parse pressure requirement
+        # ------ Pressure ------
         pressure_str = params.get("pressure", params.get("max_pressure", ""))
-        required_pressure = self._parse_pressure_range(pressure_str)
+        required_pressure = self._parse_pressure_range(str(pressure_str)) if pressure_str else None
         
-        if required_pressure:
-            if product["max_pressure"] >= required_pressure:
-                bonus += 10
+        max_pressure = product.get("max_pressure") or 0
+        p_rotary = product.get("pressure_rotary") or 0
+        p_recip = product.get("pressure_reciprocating") or 0
+        effective_pressure = max(max_pressure, p_rotary, p_recip)
+        
+        if required_pressure is not None and effective_pressure > 0:
+            if effective_pressure >= required_pressure:
+                raw_score += W_PRESSURE
+            elif effective_pressure >= required_pressure * 0.7:
+                raw_score += W_PRESSURE * 0.4
+                warnings.append(f"Pressure rating ({effective_pressure} bar) may be marginal")
             else:
-                score -= 20  # Penalty
-        else:
-            bonus += 5  # No specific pressure requirement
+                raw_score -= W_PRESSURE * 0.3  # Penalty
+        elif required_pressure is None:
+            raw_score += W_PRESSURE * 0.3  # No pressure constraint
         
-        # Check certifications
+        # ------ Certifications ------
         required_certs = params.get("certifications_required", [])
         if isinstance(required_certs, list) and required_certs:
             cert_matches = 0
+            cert_total = 0
             for cert in required_certs:
                 cert_clean = str(cert).split("(")[0].strip().lower()
-                if cert_clean in ["none", "none specific", "not sure", "none required"]:
-                    bonus += 5
+                if cert_clean in ("none", "none specific", "not sure", "none required"):
+                    raw_score += W_CERTIFICATION * 0.3
                     break
+                cert_total += 1
                 if any(cert_clean in pc.lower() for pc in product.get("certifications", [])):
                     cert_matches += 1
-            if cert_matches > 0:
-                bonus += min(10, cert_matches * 5)
+            if cert_total > 0:
+                raw_score += W_CERTIFICATION * (cert_matches / cert_total)
         else:
-            bonus += 5  # No specific certs required
+            raw_score += W_CERTIFICATION * 0.3  # No cert constraint
         
-        # Check industry match
+        # ------ Industry ------
         industry = params.get("industry", "").lower()
-        industry_match = False
-        for ind in product.get("industries", []):
-            if ind.lower() in industry or industry in ind.lower():
-                bonus += 10
-                industry_match = True
-                break
-        if not industry_match and industry:
-            bonus += 3  # Partial credit - product might still work
+        if industry:
+            ind_words = set(industry.replace('&', ' ').replace('/', ' ').split())
+            product_industries = [i.lower() for i in product.get("industries", [])]
+            matched = False
+            for pi in product_industries:
+                pi_words = set(pi.replace('&', ' ').replace('/', ' ').split())
+                if ind_words & pi_words:
+                    raw_score += W_INDUSTRY
+                    matched = True
+                    break
+            if not matched:
+                raw_score += W_INDUSTRY * 0.15  # Minimal credit
+        else:
+            raw_score += W_INDUSTRY * 0.3
         
-        # Check application/equipment match
+        # ------ Application / Equipment ------
         app_type = params.get("application_type", params.get("equipment_type", "")).lower()
-        app_match = False
-        for app in product.get("applications", []):
-            if app.lower() in app_type or app_type in app.lower():
-                bonus += 10
-                app_match = True
-                break
-        if not app_match and app_type:
-            # Check if product type matches application
-            if product.get("type", "").lower() in app_type:
-                bonus += 8
+        if app_type:
+            app_words = set(app_type.replace('/', ' ').replace('(', ' ').replace(')', ' ').split())
+            product_apps = [a.lower() for a in product.get("applications", [])]
+            matched = False
+            for pa in product_apps:
+                pa_words = set(pa.replace('/', ' ').split())
+                if app_words & pa_words:
+                    raw_score += W_APPLICATION
+                    matched = True
+                    break
+            if not matched:
+                # Check product type
+                if any(w in product.get("type", "").lower() for w in app_words):
+                    raw_score += W_APPLICATION * 0.5
+                else:
+                    raw_score += W_APPLICATION * 0.1
+        else:
+            raw_score += W_APPLICATION * 0.3
         
-        # Calculate final score (capped at 100)
-        final_score = min(100, score + bonus)
-        return max(10, final_score), warnings  # Minimum 10% for any qualifying product
+        # ------ Media ------
+        media = params.get("media", params.get("media_type", "")).lower()
+        if media:
+            product_media = " ".join(
+                product.get("media", []) + product.get("applications", [])
+            ).lower()
+            if media in product_media or any(m in media for m in product.get("media", [])):
+                raw_score += W_MEDIA
+            else:
+                raw_score += W_MEDIA * 0.1
+        else:
+            raw_score += W_MEDIA * 0.3
+        
+        # ------ Normalize to 0-100 ------
+        final_score = max(0, min(100, (raw_score / MAX_RAW) * 100))
+        
+        return round(final_score, 1), warnings
     
     def _parse_temp_range(self, temp_str: str) -> Optional[int]:
         """Parse temperature from selection string."""
@@ -875,51 +936,63 @@ Please contact our technical team for a custom solution:
         # Map wizard answers to internal parameter names expected by get_recommendations_for_selection
         # Parse temperature from wizard options like "High Temperature (200°C to 400°C)"
         import re
-        temp_range = answers.get('temperature_range', '')
+        temp_range = answers.get('temperature_range', '') or answers.get('max_temperature', '')
         operating_temp = None
         if temp_range:
             # Extract max temperature from ranges like "200°C to 400°C" or "(200-400C)"
             temp_match = re.search(r'(\d+)\s*°?C?\s*(?:to|\-)\s*(\d+)', temp_range)
             if temp_match:
                 operating_temp = float(temp_match.group(2))  # Use max temp
-            elif 'cryogenic' in temp_range.lower():
-                operating_temp = -100.0
-            elif 'high' in temp_range.lower():
-                operating_temp = 350.0
-            elif 'very high' in temp_range.lower():
+            elif 'cryogenic' in temp_range.lower() or 'below -40' in temp_range.lower():
+                operating_temp = -40.0
+            elif '-40 to 0' in temp_range.lower() or 'sub-zero' in temp_range.lower():
+                operating_temp = 0.0
+            elif 'above 600' in temp_range.lower() or 'extreme' in temp_range.lower():
+                operating_temp = 650.0
+            elif 'very high' in temp_range.lower() or '400 to 600' in temp_range.lower():
                 operating_temp = 500.0
-            elif 'ambient' in temp_range.lower():
-                operating_temp = 150.0
-            elif 'low' in temp_range.lower():
-                operating_temp = 25.0
+            elif '250 to 400' in temp_range.lower() or ('high' in temp_range.lower() and 'very' not in temp_range.lower()):
+                operating_temp = 350.0
+            elif '100 to 250' in temp_range.lower() or 'moderate' in temp_range.lower():
+                operating_temp = 200.0
+            elif '0 to 100' in temp_range.lower() or 'ambient' in temp_range.lower():
+                operating_temp = 80.0
         
         # Parse pressure from wizard options like "Medium (10-50 bar)"
-        pressure_range = answers.get('pressure_range', '')
+        pressure_range = answers.get('pressure_range', '') or answers.get('max_pressure', '')
         operating_pressure = None
         if pressure_range:
             pressure_match = re.search(r'(\d+)\s*(?:\-|to)\s*(\d+)', pressure_range)
             if pressure_match:
                 operating_pressure = float(pressure_match.group(2))  # Use max pressure
-            elif 'low' in pressure_range.lower():
-                operating_pressure = 10.0
-            elif 'medium' in pressure_range.lower():
-                operating_pressure = 50.0
-            elif 'high' in pressure_range.lower():
-                operating_pressure = 150.0
+            elif 'ultra' in pressure_range.lower():
+                operating_pressure = 450.0
             elif 'very high' in pressure_range.lower():
                 operating_pressure = 300.0
+            elif 'high' in pressure_range.lower() and 'very' not in pressure_range.lower():
+                operating_pressure = 100.0
+            elif 'medium' in pressure_range.lower():
+                operating_pressure = 40.0
+            elif 'low' in pressure_range.lower():
+                operating_pressure = 10.0
         
         params = {
             'industry': answers.get('industry'),
             'application_type': answers.get('application_type'),
+            'equipment_type': answers.get('equipment_type'),
+            'sealing_type': answers.get('sealing_type'),
             'operating_temperature': operating_temp,
             'operating_pressure': operating_pressure,
             'media_type': answers.get('media_type'),
-            'certifications_required': answers.get('required_certifications', []),
+            'media_description': answers.get('media_details', ''),
+            'certifications_required': answers.get('required_certifications', answers.get('certifications_required', [])),
+            'material_preference': answers.get('material_preference'),
             # Also include keys expected by _score_product fallback
             'temperature': operating_temp,
             'pressure': operating_pressure,
             'media': answers.get('media_type'),
+            'max_temperature': answers.get('temperature_range', '') or answers.get('max_temperature', ''),
+            'max_pressure': answers.get('pressure_range', '') or answers.get('max_pressure', ''),
         }
         
         scored_products = []
@@ -941,7 +1014,11 @@ Please contact our technical team for a custom solution:
                         "confidence": rec.get("confidence", "medium"),
                         "certifications": rec.get("certifications", []),
                         "applications": rec.get("applications", []),
-                        "source_url": rec.get("source_url", "")
+                        "source_url": rec.get("source_url", ""),
+                        "features": rec.get("features", []),
+                        "material": rec.get("material", ""),
+                        "industries": rec.get("industries", []),
+                        "recommendation_text": rec.get("recommendation_text", ""),
                     })
                 
             except Exception as e:
@@ -959,9 +1036,9 @@ Please contact our technical team for a custom solution:
                         "type": product["type"],
                         "score": score,
                         "specifications": {
-                            "max_temperature": f"{product['max_temp']}°C",
-                            "max_pressure": f"{product['max_pressure']} bar",
-                            "certifications": product["certifications"]
+                            "max_temperature": f"{product.get('max_temp', 'N/A')}°C",
+                            "max_pressure": f"{product.get('max_pressure', 'N/A')} bar",
+                            "certifications": product.get("certifications", [])
                         },
                         "warnings": warnings,
                         "match_reasons": self._get_match_reasons(product, params),
@@ -972,3 +1049,4 @@ Please contact our technical team for a custom solution:
         # Sort by score and return top 5
         scored_products.sort(key=lambda x: x["score"], reverse=True)
         return scored_products[:5]
+

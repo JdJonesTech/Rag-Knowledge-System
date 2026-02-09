@@ -1,6 +1,6 @@
 ﻿'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 interface SelectionStep {
     id: string;
@@ -64,15 +64,21 @@ interface QuoteModalState {
     submitSuccess: boolean;
 }
 
+// ---------------------------------------------------------------------------
+// Wizard steps — aligned with the actual product catalog data
+// ---------------------------------------------------------------------------
 const SELECTION_STEPS: SelectionStep[] = [
     {
         id: 'application',
-        question: 'What type of application is this for?',
+        question: 'What type of equipment needs sealing?',
         options: [
-            'Valve Packing',
-            'Pump Sealing',
-            'Flange Gasket',
-            'Heat Exchanger',
+            'Valve',
+            'Pump',
+            'Flange / Gasket Joint',
+            'Agitator / Mixer',
+            'Compressor / Blower',
+            'Boiler / Turbine',
+            'Insulation',
             'Other Industrial'
         ],
         type: 'select',
@@ -83,12 +89,15 @@ const SELECTION_STEPS: SelectionStep[] = [
         question: 'What industry sector?',
         options: [
             'Oil & Gas / Refinery',
-            'Chemical Processing',
+            'Chemical / Petrochemical',
             'Power Generation',
-            'Pharmaceutical',
-            'Food & Beverage',
             'Pulp & Paper',
-            'Water Treatment',
+            'Cement',
+            'Steel',
+            'Mining / Minerals',
+            'Sugar',
+            'Food & Beverage',
+            'Pharmaceutical',
             'Other'
         ],
         type: 'select',
@@ -126,9 +135,9 @@ const SELECTION_STEPS: SelectionStep[] = [
             'Steam',
             'Water',
             'Hydrocarbons (Oil/Gas)',
-            'Acids/Alkalis',
-            'Solvents',
-            'Cryogenic Fluids',
+            'Acids / Alkalis',
+            'Solvents / Chemicals',
+            'Slurries / Abrasives',
             'Other'
         ],
         type: 'select',
@@ -140,9 +149,7 @@ const SELECTION_STEPS: SelectionStep[] = [
         options: [
             'API 622 (Fugitive Emissions)',
             'API 589 (Fire Safe)',
-            'ISO 15848 (Emissions)',
-            'FDA Approved',
-            'TA-Luft Compliant',
+            'FDA / Food Grade',
             'None Required'
         ],
         type: 'multiselect',

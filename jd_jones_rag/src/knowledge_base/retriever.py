@@ -123,7 +123,9 @@ class HierarchicalRetriever:
         self.hybrid_retrieval = HybridRetrieval(
             vector_weight=0.4,
             keyword_weight=0.6,
-            exact_match_boost=2.0
+            exact_match_boost=2.0,
+            use_rrf=True,
+            use_query_expansion=True
         )
         self.level_contexts = LevelContextDatabase()
     
