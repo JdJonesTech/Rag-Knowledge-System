@@ -1,0 +1,336 @@
+================================================================================
+PRODUCT CATALOG DATA COMPLETENESS AUDIT REPORT
+================================================================================
+Generated: 2026-02-11 18:11
+Products File: C:\Users\Aditya Rai\Desktop\jd jones\new project\Rag-Knowledge-System\jd_jones_rag\data\products_structured.json
+Total Products: 104
+================================================================================
+
+EXECUTIVE SUMMARY
+--------------------------------------------------------------------------------
+Total Products Audited:        104
+Products with Issues:          26 (25.0%)
+Products without Issues:       78 (75.0%)
+Products without Certifications: 30 (28.8%)
+
+FIELD COMPLETENESS STATISTICS
+--------------------------------------------------------------------------------
+Field                     Valid      Invalid    % Complete     
+--------------------------------------------------------------------------------
+Product Code              104        0           100.0%
+Name                      104        0           100.0%
+Category                  104        0           100.0%
+Max Temperature           97         7            93.3%
+Max Pressure              90         14           86.5%
+Applications              98         6            94.2%
+Description               99         5            95.2%
+Certifications            74         30           71.2%
+
+PRODUCTS WITH MISSING OR INCOMPLETE DATA
+--------------------------------------------------------------------------------
+Found 26 products with issues:
+
+Product #9: NA 709
+  Name: Product NA 709 - Industrial Sealing Solution
+  Issues (2):
+    ✗ Max Temperature: Max temperature is None
+    ✗ Max Pressure: Max pressure (static) is None
+
+Product #15: NA 715
+  Name: Product NA 715 - Industrial Sealing Solution
+  Issues (1):
+    ✗ Description: Description is empty or missing
+
+Product #16: NA 716
+  Name: Product NA 716 - Industrial Sealing Solution
+  Issues (1):
+    ✗ Max Temperature: Max temperature is None
+
+Product #17: NA 717
+  Name: Product NA 717 - Industrial Sealing Solution
+  Issues (2):
+    ✗ Max Pressure: Max pressure (static) is None
+    ✗ Applications: No applications listed
+
+Product #18: NA 718
+  Name: Product NA 718 - Industrial Sealing Solution
+  Issues (2):
+    ✗ Max Temperature: Max temperature is None
+    ✗ Max Pressure: Max pressure (static) is None
+
+Product #27: NA 727
+  Name: Product NA 727 - Industrial Sealing Solution
+  Issues (1):
+    ✗ Max Pressure: Max pressure (static) is None
+
+Product #30: NA 730
+  Name: Product NA 730 - Industrial Sealing Solution
+  Issues (1):
+    ✗ Description: Description is empty or missing
+
+Product #34: NA 734
+  Name: Product NA 734 - Industrial Sealing Solution
+  Issues (1):
+    ✗ Max Pressure: Max pressure (static) is None
+
+Product #35: NA 735
+  Name: Product NA 735 - Industrial Sealing Solution
+  Issues (1):
+    ✗ Max Pressure: Max pressure (static) is None
+
+Product #38: NA 738
+  Name: Product NA 738 - Industrial Sealing Solution
+  Issues (1):
+    ✗ Max Temperature: Max temperature is None
+
+Product #41: NA 741
+  Name: Product NA 741 - Industrial Sealing Solution
+  Issues (1):
+    ✗ Max Pressure: Max pressure (static) is None
+
+Product #48: NA 748
+  Name: Product NA 748 - Industrial Sealing Solution
+  Issues (1):
+    ✗ Applications: No applications listed
+
+Product #50: NA 750
+  Name: Product NA 750 - Industrial Sealing Solution
+  Issues (1):
+    ✗ Max Pressure: Max pressure (static) is None
+
+Product #52: NA 752
+  Name: Product NA 752 - Industrial Sealing Solution
+  Issues (1):
+    ✗ Max Pressure: Max pressure (static) is None
+
+Product #53: NA 753
+  Name: Product NA 753 - Industrial Sealing Solution
+  Issues (1):
+    ✗ Max Pressure: Max pressure (static) is None
+
+Product #57: NA 757
+  Name: Product NA 757 - Industrial Sealing Solution
+  Issues (1):
+    ✗ Applications: No applications listed
+
+Product #60: NA 760
+  Name: Product NA 760 - Industrial Sealing Solution
+  Issues (2):
+    ✗ Max Pressure: Max pressure (static) is None
+    ✗ Applications: No applications listed
+
+Product #65: NA 765
+  Name: Product NA 765 - Industrial Sealing Solution
+  Issues (1):
+    ✗ Applications: No applications listed
+
+Product #68: NA 768
+  Name: Product NA 768 - Industrial Sealing Solution
+  Issues (1):
+    ✗ Max Pressure: Max pressure (static) is None
+
+Product #70: NA 770
+  Name: Product NA 770 - Industrial Sealing Solution
+  Issues (1):
+    ✗ Max Temperature: Max temperature is None
+
+Product #80: NA 780
+  Name: Product NA 780 - Industrial Sealing Solution
+  Issues (3):
+    ✗ Max Temperature: Max temperature is None
+    ✗ Max Pressure: Max pressure (static) is None
+    ✗ Description: Description is empty or missing
+
+Product #81: NA 781
+  Name: Product NA 781 - Industrial Sealing Solution
+  Issues (1):
+    ✗ Description: Description is empty or missing
+
+Product #86: NA 786
+  Name: Product NA 786 - Industrial Sealing Solution
+  Issues (1):
+    ✗ Max Temperature: Max temperature is None
+
+Product #87: NA 787
+  Name: Product NA 787 - Industrial Sealing Solution
+  Issues (1):
+    ✗ Applications: No applications listed
+
+Product #89: NA 789
+  Name: Product NA 789 - Industrial Sealing Solution
+  Issues (1):
+    ✗ Description: Description is empty or missing
+
+Product #98: NA 798
+  Name: Product NA 798 - Industrial Sealing Solution
+  Issues (1):
+    ✗ Max Pressure: Max pressure (static) is None
+
+PRODUCTS WITHOUT CERTIFICATIONS
+--------------------------------------------------------------------------------
+Found 30 products without certifications:
+
+
+Compression Packing:
+  - NA 767: Product NA 767 - Industrial Sealing Solution
+  - NA 789: Product NA 789 - Industrial Sealing Solution
+  - NA 792: Product NA 792 - Industrial Sealing Solution
+
+Expanded PTFE Products:
+  - NA 701: Product NA 701 - Industrial Sealing Solution
+  - NA 708: Product NA 708 - Industrial Sealing Solution
+  - NA 731: Product NA 731 - Industrial Sealing Solution
+  - NA 759: Product NA 759 - Industrial Sealing Solution
+  - NA 766: Product NA 766 - Industrial Sealing Solution
+  - NA 785: Product NA 785 - Industrial Sealing Solution
+  - NA 793: Product NA 793 - Industrial Sealing Solution
+  - NA 795: Product NA 795 - Industrial Sealing Solution
+
+Graphite Sealing Products:
+  - NA 721: Product NA 721 - Industrial Sealing Solution
+  - NA 729: Product NA 729 - Industrial Sealing Solution
+  - NA 771: Product NA 771 - Industrial Sealing Solution
+  - NA 798: Product NA 798 - Industrial Sealing Solution
+
+Industrial Polymer Products:
+  - NA 719: Product NA 719 - Industrial Sealing Solution
+  - NA 728: Product NA 728 - Industrial Sealing Solution
+  - NA 738: Product NA 738 - Industrial Sealing Solution
+  - NA 752: Product NA 752 - Industrial Sealing Solution
+  - NA 754: Product NA 754 - Industrial Sealing Solution
+  - NA 769: Product NA 769 - Industrial Sealing Solution
+  - NA 779: Product NA 779 - Industrial Sealing Solution
+  - NA 791: Product NA 791 - Industrial Sealing Solution
+
+Insulation:
+  - NA 706: Product NA 706 - Industrial Sealing Solution
+  - NA 778: Product NA 778 - Industrial Sealing Solution
+  - NA 782: Product NA 782 - Industrial Sealing Solution
+  - NA 784: Product NA 784 - Industrial Sealing Solution
+
+Specialty Lubricants:
+  - NA 713: Product NA 713 - Industrial Sealing Solution
+  - NA 748: Product NA 748 - Industrial Sealing Solution
+  - NA 804: Product NA 804 - Industrial Sealing Solution
+
+DETAILED PRODUCT VALIDATION SUMMARY
+--------------------------------------------------------------------------------
+#     Code            Name                                Issues    
+--------------------------------------------------------------------------------
+1     NA 701          Product NA 701 - Industrial Sealin  ✓ OK      
+2     NA 702          Product NA 702 - Industrial Sealin  ✓ OK      
+3     NA 703          Product NA 703 - Industrial Sealin  ✓ OK      
+4     NA 704          Product NA 704 - Industrial Sealin  ✓ OK      
+5     NA 705          Product NA 705 - Industrial Sealin  ✓ OK      
+6     NA 706          Product NA 706 - Industrial Sealin  ✓ OK      
+7     NA 707          Product NA 707 - Industrial Sealin  ✓ OK      
+8     NA 708          Product NA 708 - Industrial Sealin  ✓ OK      
+9     NA 709          Product NA 709 - Industrial Sealin  ✗ 2       
+10    NA 710          Product NA 710 - Industrial Sealin  ✓ OK      
+11    NA 711          Product NA 711 - Industrial Sealin  ✓ OK      
+12    NA 712          Product NA 712 - Industrial Sealin  ✓ OK      
+13    NA 713          Product NA 713 - Industrial Sealin  ✓ OK      
+14    NA 714          Product NA 714 - Industrial Sealin  ✓ OK      
+15    NA 715          Product NA 715 - Industrial Sealin  ✗ 1       
+16    NA 716          Product NA 716 - Industrial Sealin  ✗ 1       
+17    NA 717          Product NA 717 - Industrial Sealin  ✗ 2       
+18    NA 718          Product NA 718 - Industrial Sealin  ✗ 2       
+19    NA 719          Product NA 719 - Industrial Sealin  ✓ OK      
+20    NA 720          Product NA 720 - Industrial Sealin  ✓ OK      
+21    NA 721          Product NA 721 - Industrial Sealin  ✓ OK      
+22    NA 722          Product NA 722 - Industrial Sealin  ✓ OK      
+23    NA 723          Product NA 723 - Industrial Sealin  ✓ OK      
+24    NA 724          Product NA 724 - Industrial Sealin  ✓ OK      
+25    NA 725          Product NA 725 - Industrial Sealin  ✓ OK      
+26    NA 726          Product NA 726 - Industrial Sealin  ✓ OK      
+27    NA 727          Product NA 727 - Industrial Sealin  ✗ 1       
+28    NA 728          Product NA 728 - Industrial Sealin  ✓ OK      
+29    NA 729          Product NA 729 - Industrial Sealin  ✓ OK      
+30    NA 730          Product NA 730 - Industrial Sealin  ✗ 1       
+31    NA 731          Product NA 731 - Industrial Sealin  ✓ OK      
+32    NA 732          Product NA 732 - Industrial Sealin  ✓ OK      
+33    NA 733          Product NA 733 - Industrial Sealin  ✓ OK      
+34    NA 734          Product NA 734 - Industrial Sealin  ✗ 1       
+35    NA 735          Product NA 735 - Industrial Sealin  ✗ 1       
+36    NA 736          Product NA 736 - Industrial Sealin  ✓ OK      
+37    NA 737          Product NA 737 - Industrial Sealin  ✓ OK      
+38    NA 738          Product NA 738 - Industrial Sealin  ✗ 1       
+39    NA 739          Product NA 739 - Industrial Sealin  ✓ OK      
+40    NA 740          Product NA 740 - Industrial Sealin  ✓ OK      
+41    NA 741          Product NA 741 - Industrial Sealin  ✗ 1       
+42    NA 742          Product NA 742 - Industrial Sealin  ✓ OK      
+43    NA 743          Product NA 743 - Industrial Sealin  ✓ OK      
+44    NA 744          Product NA 744 - Industrial Sealin  ✓ OK      
+45    NA 745          Product NA 745 - Industrial Sealin  ✓ OK      
+46    NA 746          Product NA 746 - Industrial Sealin  ✓ OK      
+47    NA 747          Product NA 747 - Industrial Sealin  ✓ OK      
+48    NA 748          Product NA 748 - Industrial Sealin  ✗ 1       
+49    NA 749          Product NA 749 - Industrial Sealin  ✓ OK      
+50    NA 750          Product NA 750 - Industrial Sealin  ✗ 1       
+51    NA 751          Product NA 751 - Industrial Sealin  ✓ OK      
+52    NA 752          Product NA 752 - Industrial Sealin  ✗ 1       
+53    NA 753          Product NA 753 - Industrial Sealin  ✗ 1       
+54    NA 754          Product NA 754 - Industrial Sealin  ✓ OK      
+55    NA 755          Product NA 755 - Industrial Sealin  ✓ OK      
+56    NA 756          Product NA 756 - Industrial Sealin  ✓ OK      
+57    NA 757          Product NA 757 - Industrial Sealin  ✗ 1       
+58    NA 758          Product NA 758 - Industrial Sealin  ✓ OK      
+59    NA 759          Product NA 759 - Industrial Sealin  ✓ OK      
+60    NA 760          Product NA 760 - Industrial Sealin  ✗ 2       
+61    NA 761          Product NA 761 - Industrial Sealin  ✓ OK      
+62    NA 762          Product NA 762 - Industrial Sealin  ✓ OK      
+63    NA 763          Product NA 763 - Industrial Sealin  ✓ OK      
+64    NA 764          Product NA 764 - Industrial Sealin  ✓ OK      
+65    NA 765          Product NA 765 - Industrial Sealin  ✗ 1       
+66    NA 766          Product NA 766 - Industrial Sealin  ✓ OK      
+67    NA 767          Product NA 767 - Industrial Sealin  ✓ OK      
+68    NA 768          Product NA 768 - Industrial Sealin  ✗ 1       
+69    NA 769          Product NA 769 - Industrial Sealin  ✓ OK      
+70    NA 770          Product NA 770 - Industrial Sealin  ✗ 1       
+71    NA 771          Product NA 771 - Industrial Sealin  ✓ OK      
+72    NA 772          Product NA 772 - Industrial Sealin  ✓ OK      
+73    NA 773          Product NA 773 - Industrial Sealin  ✓ OK      
+74    NA 774          Product NA 774 - Industrial Sealin  ✓ OK      
+75    NA 775          Product NA 775 - Industrial Sealin  ✓ OK      
+76    NA 776          Product NA 776 - Industrial Sealin  ✓ OK      
+77    NA 777          Product NA 777 - Industrial Sealin  ✓ OK      
+78    NA 778          Product NA 778 - Industrial Sealin  ✓ OK      
+79    NA 779          Product NA 779 - Industrial Sealin  ✓ OK      
+80    NA 780          Product NA 780 - Industrial Sealin  ✗ 3       
+81    NA 781          Product NA 781 - Industrial Sealin  ✗ 1       
+82    NA 782          Product NA 782 - Industrial Sealin  ✓ OK      
+83    NA 783          Product NA 783 - Industrial Sealin  ✓ OK      
+84    NA 784          Product NA 784 - Industrial Sealin  ✓ OK      
+85    NA 785          Product NA 785 - Industrial Sealin  ✓ OK      
+86    NA 786          Product NA 786 - Industrial Sealin  ✗ 1       
+87    NA 787          Product NA 787 - Industrial Sealin  ✗ 1       
+88    NA 788          Product NA 788 - Industrial Sealin  ✓ OK      
+89    NA 789          Product NA 789 - Industrial Sealin  ✗ 1       
+90    NA 790          Product NA 790 - Industrial Sealin  ✓ OK      
+91    NA 791          Product NA 791 - Industrial Sealin  ✓ OK      
+92    NA 792          Product NA 792 - Industrial Sealin  ✓ OK      
+93    NA 793          Product NA 793 - Industrial Sealin  ✓ OK      
+94    NA 794          Product NA 794 - Industrial Sealin  ✓ OK      
+95    NA 795          Product NA 795 - Industrial Sealin  ✓ OK      
+96    NA 796          Product NA 796 - Industrial Sealin  ✓ OK      
+97    NA 797          Product NA 797 - Industrial Sealin  ✓ OK      
+98    NA 798          Product NA 798 - Industrial Sealin  ✗ 1       
+99    NA 799          Product NA 799 - Industrial Sealin  ✓ OK      
+100   NA 800          Product NA 800 - Industrial Sealin  ✓ OK      
+101   NA 801          Product NA 801 - Industrial Sealin  ✓ OK      
+102   NA 802          Product NA 802 - Industrial Sealin  ✓ OK      
+103   NA 803          Product NA 803 - Industrial Sealin  ✓ OK      
+104   NA 804          Product NA 804 - Industrial Sealin  ✓ OK      
+
+RECOMMENDATIONS
+--------------------------------------------------------------------------------
+1. Review and complete missing required fields for products listed above
+2. Ensure all products have temperature and pressure specifications
+3. Add application information for products missing this data
+4. Verify and expand product descriptions where needed
+5. Consider adding certifications for products that lack them
+6. Verify if products truly lack certifications or if data is missing
+
+================================================================================
+END OF REPORT
+================================================================================
