@@ -14,6 +14,11 @@ from fastapi.exceptions import RequestValidationError
 
 from src.config.settings import settings
 from src.api.routers import internal_chat, external_portal, admin, agentic
+from src.api.schemas.responses import (
+    EnquiryDemoDashboardResponse, QuotationDemoDashboardResponse,
+    QuotationListResponse, PDFGenerationResponse, MarkSentResponse,
+    SavePricesResponse
+)
 
 
 @asynccontextmanager
@@ -306,8 +311,12 @@ async def health_check() -> Dict[str, Any]:
 
 
 # Demo dashboard endpoints (no auth required for testing)
-@app.get("/internal/enquiries/dashboard", tags=["Demo Dashboards"])
-async def demo_enquiries_dashboard():
+@app.get(
+    "/internal/enquiries/dashboard",
+    tags=["Demo Dashboards"],
+    response_model=EnquiryDemoDashboardResponse
+)
+async def demo_enquiries_dashboard() -> EnquiryDemoDashboardResponse:
     """Demo enquiries dashboard - returns sample data without authentication."""
     from datetime import datetime
     return {
@@ -356,8 +365,12 @@ async def demo_enquiries_dashboard():
     }
 
 
-@app.get("/internal/quotations/dashboard", tags=["Demo Dashboards"])
-async def demo_quotations_dashboard():
+@app.get(
+    "/internal/quotations/dashboard",
+    tags=["Demo Dashboards"],
+    response_model=QuotationDemoDashboardResponse
+)
+async def demo_quotations_dashboard() -> QuotationDemoDashboardResponse:
     """Demo quotations dashboard - returns sample data without authentication."""
     from datetime import datetime
     return {
@@ -406,8 +419,12 @@ async def demo_quotations_dashboard():
 
 
 # Main quotations list endpoint - frontend calls this (unauthenticated demo)
-@app.get("/demo/quotations", tags=["Quotation Management"])
-async def get_quotations_list():
+@app.get(
+    "/demo/quotations",
+    tags=["Quotation Management"],
+    response_model=QuotationListResponse
+)
+async def get_quotations_list() -> QuotationListResponse:
     """Get all quotation requests - returns real data from storage."""
     from datetime import datetime
     from src.quotation.models import get_all_quotation_requests
@@ -531,8 +548,12 @@ async def get_quotations_list():
 
 
 # Demo PDF generation endpoint (following datasheet generation pattern)
-@app.post("/demo/quotations/{quotation_id}/generate-pdf", tags=["Quotation Management"])
-async def demo_generate_quotation_pdf(quotation_id: str, include_pricing: bool = True):
+@app.post(
+    "/demo/quotations/{quotation_id}/generate-pdf",
+    tags=["Quotation Management"],
+    response_model=PDFGenerationResponse
+)
+async def demo_generate_quotation_pdf(quotation_id: str, include_pricing: bool = True) -> PDFGenerationResponse:
     """
     Generate a quotation PDF - uses documents/pdf_generator like datasheet generation.
     Returns a download URL for the generated PDF.
@@ -687,8 +708,12 @@ async def demo_generate_quotation_pdf(quotation_id: str, include_pricing: bool =
 
 
 # Demo mark-sent endpoint (unauthenticated for internal portal)
-@app.post("/demo/quotations/{quotation_id}/mark-sent", tags=["Quotation Management"])
-async def demo_mark_sent(quotation_id: str):
+@app.post(
+    "/demo/quotations/{quotation_id}/mark-sent",
+    tags=["Quotation Management"],
+    response_model=MarkSentResponse
+)
+async def demo_mark_sent(quotation_id: str) -> MarkSentResponse:
     """Mark a quotation as sent - demo endpoint without auth."""
     from src.quotation.models import get_quotation_request, save_quotation_request, QuotationStatus
     
@@ -708,8 +733,12 @@ async def demo_mark_sent(quotation_id: str):
 
 
 # Demo save-prices endpoint (unauthenticated for internal portal)
-@app.post("/demo/quotations/{quotation_id}/save-prices", tags=["Quotation Management"])
-async def demo_save_prices(quotation_id: str, request: Request):
+@app.post(
+    "/demo/quotations/{quotation_id}/save-prices",
+    tags=["Quotation Management"],
+    response_model=SavePricesResponse
+)
+async def demo_save_prices(quotation_id: str, request: Request) -> SavePricesResponse:
     """Save line item details (prices, specs, etc.) - demo endpoint without auth."""
     from src.quotation.models import get_quotation_request, save_quotation_request
     

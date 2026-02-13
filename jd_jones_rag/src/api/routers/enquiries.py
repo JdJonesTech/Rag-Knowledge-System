@@ -18,6 +18,12 @@ from src.enquiry.models import (
     save_enquiry, get_enquiry, get_all_enquiries, get_enquiry_stats
 )
 from src.enquiry.analyzer import get_enquiry_analyzer
+from src.api.schemas.responses import (
+    EnquirySubmitResponse, EnquiryListResponse, EnquiryStatsResponse,
+    EnquiryDashboardResponse, EnquiryAnalysisResponse, EnquiryDetailsResponse,
+    AssignmentResponse, NoteResponse, GenerateResponseResponse,
+    SendResponseResponse, StatusUpdateResponse, EscalationResponse
+)
 
 
 logger = logging.getLogger(__name__)
@@ -61,22 +67,20 @@ class SendResponseRequest(BaseModel):
     send_email: bool = True
 
 
-class EnquiryListResponse(BaseModel):
-    """Response for enquiry list."""
-    total: int
-    enquiries: List[Dict[str, Any]]
+# Removed local EnquiryListResponse model in favor of imported one
 
 
 # External endpoint - Submit enquiry (no auth required)
 @router.post(
     "/submit",
     summary="Submit customer enquiry",
-    description="Submit a customer enquiry for AI analysis and internal review."
+    description="Submit a customer enquiry for AI analysis and internal review.",
+    response_model=EnquirySubmitResponse
 )
 async def submit_enquiry(
     request: EnquirySubmitRequest,
     background_tasks: BackgroundTasks
-) -> Dict[str, Any]:
+) -> EnquirySubmitResponse:
     """
     Submit a customer enquiry.
     
@@ -181,11 +185,12 @@ async def list_enquiries(
 @router.get(
     "/stats",
     summary="Get enquiry statistics",
-    description="Get summary statistics for enquiries."
+    description="Get summary statistics for enquiries.",
+    response_model=EnquiryStatsResponse
 )
 async def get_stats(
     current_user: User = Depends(require_permission(Permission.SEARCH_DOCUMENTS))
-) -> Dict[str, Any]:
+) -> EnquiryStatsResponse:
     """Get enquiry statistics for dashboard."""
     return get_enquiry_stats()
 
@@ -193,12 +198,13 @@ async def get_stats(
 @router.get(
     "/dashboard",
     summary="Get quick-view dashboard",
-    description="Get quick-scan summaries for internal team dashboard."
+    description="Get quick-scan summaries for internal team dashboard.",
+    response_model=EnquiryDashboardResponse
 )
 async def get_dashboard(
     limit: int = Query(default=20, le=100, description="Max enquiries to return"),
     current_user: User = Depends(require_permission(Permission.SEARCH_DOCUMENTS))
-) -> Dict[str, Any]:
+) -> EnquiryDashboardResponse:
     """
     Get quick-view dashboard for internal team.
     
@@ -249,12 +255,13 @@ async def get_dashboard(
 @router.post(
     "/{enquiry_id}/re-analyze",
     summary="Re-run AI analysis",
-    description="Re-run AI analysis on an enquiry with the latest multi-agent system."
+    description="Re-run AI analysis on an enquiry with the latest multi-agent system.",
+    response_model=EnquiryAnalysisResponse
 )
 async def reanalyze_enquiry(
     enquiry_id: str,
     current_user: User = Depends(require_permission(Permission.MANAGE_DOCUMENTS))
-) -> Dict[str, Any]:
+) -> EnquiryAnalysisResponse:
     """
     Re-run AI analysis on an enquiry.
     
@@ -292,12 +299,13 @@ async def reanalyze_enquiry(
 @router.get(
     "/{enquiry_id}",
     summary="Get enquiry details",
-    description="Get full details of an enquiry including AI analysis."
+    description="Get full details of an enquiry including AI analysis.",
+    response_model=EnquiryDetailsResponse
 )
 async def get_enquiry_details(
     enquiry_id: str,
     current_user: User = Depends(require_permission(Permission.SEARCH_DOCUMENTS))
-) -> Dict[str, Any]:
+) -> EnquiryDetailsResponse:
     """
     Get full enquiry details.
     
@@ -325,13 +333,14 @@ async def get_enquiry_details(
 @router.post(
     "/{enquiry_id}/assign",
     summary="Assign enquiry",
-    description="Assign an enquiry to a team member."
+    description="Assign an enquiry to a team member.",
+    response_model=AssignmentResponse
 )
 async def assign_enquiry(
     enquiry_id: str,
     request: AssignEnquiryRequest,
     current_user: User = Depends(require_permission(Permission.MANAGE_DOCUMENTS))
-) -> Dict[str, Any]:
+) -> AssignmentResponse:
     """Assign an enquiry to a team member."""
     enquiry = get_enquiry(enquiry_id)
     
@@ -360,13 +369,14 @@ async def assign_enquiry(
 @router.post(
     "/{enquiry_id}/note",
     summary="Add internal note",
-    description="Add an internal note to an enquiry."
+    description="Add an internal note to an enquiry.",
+    response_model=NoteResponse
 )
 async def add_note(
     enquiry_id: str,
     request: AddNoteRequest,
     current_user: User = Depends(require_permission(Permission.MANAGE_DOCUMENTS))
-) -> Dict[str, Any]:
+) -> NoteResponse:
     """Add an internal note to an enquiry."""
     enquiry = get_enquiry(enquiry_id)
     
@@ -389,13 +399,14 @@ async def add_note(
 @router.post(
     "/{enquiry_id}/generate-response",
     summary="Generate AI response",
-    description="Generate an AI-suggested response for the enquiry."
+    description="Generate an AI-suggested response for the enquiry.",
+    response_model=GenerateResponseResponse
 )
 async def generate_response(
     enquiry_id: str,
     request: GenerateResponseRequest,
     current_user: User = Depends(require_permission(Permission.MANAGE_DOCUMENTS))
-) -> Dict[str, Any]:
+) -> GenerateResponseResponse:
     """
     Generate an AI-suggested response.
     
@@ -440,13 +451,14 @@ async def generate_response(
 @router.post(
     "/{enquiry_id}/send-response",
     summary="Send response to customer",
-    description="Send a response to the customer (optionally via email)."
+    description="Send a response to the customer (optionally via email).",
+    response_model=SendResponseResponse
 )
 async def send_response(
     enquiry_id: str,
     request: SendResponseRequest,
     current_user: User = Depends(require_permission(Permission.MANAGE_DOCUMENTS))
-) -> Dict[str, Any]:
+) -> SendResponseResponse:
     """
     Send a response to the customer.
     
@@ -493,13 +505,14 @@ async def send_response(
 @router.patch(
     "/{enquiry_id}/status",
     summary="Update enquiry status",
-    description="Update the status of an enquiry."
+    description="Update the status of an enquiry.",
+    response_model=StatusUpdateResponse
 )
 async def update_status(
     enquiry_id: str,
     new_status: str = Query(..., description="New status"),
     current_user: User = Depends(require_permission(Permission.MANAGE_DOCUMENTS))
-) -> Dict[str, Any]:
+) -> StatusUpdateResponse:
     """Update enquiry status."""
     enquiry = get_enquiry(enquiry_id)
     
@@ -530,13 +543,14 @@ async def update_status(
 @router.post(
     "/{enquiry_id}/escalate",
     summary="Escalate enquiry",
-    description="Escalate an enquiry for urgent attention."
+    description="Escalate an enquiry for urgent attention.",
+    response_model=EscalationResponse
 )
 async def escalate_enquiry(
     enquiry_id: str,
     reason: str = Query(..., min_length=5, description="Reason for escalation"),
     current_user: User = Depends(require_permission(Permission.MANAGE_DOCUMENTS))
-) -> Dict[str, Any]:
+) -> EscalationResponse:
     """Escalate an enquiry for urgent attention."""
     enquiry = get_enquiry(enquiry_id)
     
