@@ -12,6 +12,10 @@ from pydantic import BaseModel, Field
 from src.auth.authentication import User, get_current_active_user
 from src.auth.authorization import Permission, require_permission, AuthorizationService
 from src.agents.internal_agent import InternalAgent
+from src.api.schemas.responses import (
+    ClearSessionResponse, KnowledgeStatsResponse, SearchResponse,
+    UserProfileResponse
+)
 
 
 router = APIRouter()
@@ -130,12 +134,13 @@ async def get_session_history(
 @router.delete(
     "/sessions/{session_id}",
     summary="Clear session",
-    description="Clear the conversation history for a session."
+    description="Clear the conversation history for a session.",
+    response_model=ClearSessionResponse
 )
 async def clear_session(
     session_id: str,
     current_user: User = Depends(get_current_active_user)
-) -> Dict[str, Any]:
+) -> ClearSessionResponse:
     """
     Clear a conversation session.
     
@@ -184,11 +189,12 @@ async def get_suggestions(
 @router.get(
     "/knowledge-stats",
     summary="Get knowledge base statistics",
-    description="Get statistics about accessible knowledge bases."
+    description="Get statistics about accessible knowledge bases.",
+    response_model=KnowledgeStatsResponse
 )
 async def get_knowledge_stats(
     current_user: User = Depends(get_current_active_user)
-) -> Dict[str, Any]:
+) -> KnowledgeStatsResponse:
     """
     Get knowledge base statistics for the user.
     
@@ -220,13 +226,14 @@ async def get_knowledge_stats(
 @router.get(
     "/search",
     summary="Search knowledge base",
-    description="Search the knowledge base without conversational context."
+    description="Search the knowledge base without conversational context.",
+    response_model=SearchResponse
 )
 async def search_knowledge_base(
     query: str = Query(..., min_length=1, max_length=500),
     limit: int = Query(default=10, ge=1, le=50),
     current_user: User = Depends(require_permission(Permission.SEARCH_DOCUMENTS))
-) -> Dict[str, Any]:
+) -> SearchResponse:
     """
     Search the knowledge base directly.
     
@@ -264,11 +271,12 @@ async def search_knowledge_base(
 @router.get(
     "/user/profile",
     summary="Get user profile",
-    description="Get the current user's profile and permissions."
+    description="Get the current user's profile and permissions.",
+    response_model=UserProfileResponse
 )
 async def get_user_profile(
     current_user: User = Depends(get_current_active_user)
-) -> Dict[str, Any]:
+) -> UserProfileResponse:
     """
     Get current user profile and permissions.
     

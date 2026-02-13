@@ -20,6 +20,11 @@ from src.quotation.models import (
 )
 from src.quotation.pdf_generator import get_pdf_generator
 from src.quotation.analyzer import get_quotation_analyzer, QuotationAnalysis
+from src.api.schemas.responses import (
+    QuotationSubmitResponse, QuotationListResponse, QuotationDetailsResponse,
+    QuotationUpdateResponse, QuotationSentResponse, QuotationStatsResponse,
+    QuotationAnalysisResponse, QuotationDashboardResponse
+)
 
 
 logger = logging.getLogger(__name__)
@@ -86,10 +91,7 @@ class UpdateQuotationRequest(BaseModel):
     line_items: Optional[List[LineItemRequest]] = None
 
 
-class QuotationListResponse(BaseModel):
-    """Response for quotation list."""
-    total: int
-    quotations: List[Dict[str, Any]]
+# Removed local QuotationListResponse model in favor of imported one
 
 
 # Customer-facing request models
@@ -139,12 +141,13 @@ class GenericQuotationRequest(BaseModel):
 @router.post(
     "/external/submit-specific",
     summary="Submit quotation with specific requirements",
-    description="Customer submits quotation request with detailed product requirements."
+    description="Customer submits quotation request with detailed product requirements.",
+    response_model=QuotationSubmitResponse
 )
 async def submit_specific_quotation(
     request: SpecificQuotationRequest,
     background_tasks: BackgroundTasks
-) -> Dict[str, Any]:
+) -> QuotationSubmitResponse:
     """
     Submit a quotation request WITH specific requirements.
     
@@ -253,12 +256,13 @@ async def submit_specific_quotation(
 @router.post(
     "/external/submit-generic",
     summary="Submit generic quotation request",
-    description="Customer submits quotation request without specific details. AI will process."
+    description="Customer submits quotation request without specific details. AI will process.",
+    response_model=QuotationSubmitResponse
 )
 async def submit_generic_quotation(
     request: GenericQuotationRequest,
     background_tasks: BackgroundTasks
-) -> Dict[str, Any]:
+) -> QuotationSubmitResponse:
     """
     Submit a quotation request WITHOUT specific requirements.
     
@@ -449,12 +453,13 @@ async def list_quotations(
 @router.get(
     "/quotations/{request_id}",
     summary="Get quotation details",
-    description="Get full details of a quotation request."
+    description="Get full details of a quotation request.",
+    response_model=QuotationDetailsResponse
 )
 async def get_quotation(
     request_id: str,
     current_user: User = Depends(require_permission(Permission.SEARCH_DOCUMENTS))
-) -> Dict[str, Any]:
+) -> QuotationDetailsResponse:
     """
     Get full quotation request details.
     
@@ -478,13 +483,14 @@ async def get_quotation(
 @router.put(
     "/quotations/{request_id}",
     summary="Update quotation",
-    description="Update a quotation request with pricing and status."
+    description="Update a quotation request with pricing and status.",
+    response_model=QuotationUpdateResponse
 )
 async def update_quotation(
     request_id: str,
     update: UpdateQuotationRequest,
     current_user: User = Depends(require_permission(Permission.MANAGE_DOCUMENTS))
-) -> Dict[str, Any]:
+) -> QuotationUpdateResponse:
     """
     Update a quotation request.
     
@@ -610,12 +616,13 @@ async def generate_pdf(
 @router.post(
     "/quotations/{request_id}/mark-sent",
     summary="Mark quotation as sent",
-    description="Mark a quotation as sent to customer."
+    description="Mark a quotation as sent to customer.",
+    response_model=QuotationSentResponse
 )
 async def mark_sent(
     request_id: str,
     current_user: User = Depends(require_permission(Permission.MANAGE_DOCUMENTS))
-) -> Dict[str, Any]:
+) -> QuotationSentResponse:
     """Mark quotation as sent to customer."""
     quotation = get_quotation_request(request_id)
     
@@ -639,11 +646,12 @@ async def mark_sent(
 @router.get(
     "/quotations/stats/summary",
     summary="Get quotation statistics",
-    description="Get summary statistics for quotations."
+    description="Get summary statistics for quotations.",
+    response_model=QuotationStatsResponse
 )
 async def get_stats(
     current_user: User = Depends(require_permission(Permission.SEARCH_DOCUMENTS))
-) -> Dict[str, Any]:
+) -> QuotationStatsResponse:
     """Get quotation statistics for dashboard."""
     all_quotations = get_all_quotation_requests()
     
@@ -678,12 +686,13 @@ _quotation_analyses: Dict[str, QuotationAnalysis] = {}
 @router.post(
     "/quotations/{request_id}/analyze",
     summary="Analyze quotation with AI",
-    description="Run multi-agent AI analysis on a quotation request."
+    description="Run multi-agent AI analysis on a quotation request.",
+    response_model=QuotationAnalysisResponse
 )
 async def analyze_quotation(
     request_id: str,
     current_user: User = Depends(require_permission(Permission.MANAGE_DOCUMENTS))
-) -> Dict[str, Any]:
+) -> QuotationAnalysisResponse:
     """
     Analyze a quotation request using multi-agent AI system.
     
@@ -731,12 +740,13 @@ async def analyze_quotation(
 @router.post(
     "/quotations/{request_id}/re-analyze",
     summary="Re-run AI analysis",
-    description="Re-run multi-agent AI analysis on a quotation request."
+    description="Re-run multi-agent AI analysis on a quotation request.",
+    response_model=QuotationAnalysisResponse
 )
 async def re_analyze_quotation(
     request_id: str,
     current_user: User = Depends(require_permission(Permission.MANAGE_DOCUMENTS))
-) -> Dict[str, Any]:
+) -> QuotationAnalysisResponse:
     """Re-run AI analysis on an existing quotation."""
     return await analyze_quotation(request_id, current_user)
 
@@ -744,12 +754,13 @@ async def re_analyze_quotation(
 @router.get(
     "/quotations/{request_id}/analysis",
     summary="Get quotation analysis",
-    description="Get the AI analysis for a quotation request."
+    description="Get the AI analysis for a quotation request.",
+    response_model=QuotationAnalysisResponse
 )
 async def get_quotation_analysis(
     request_id: str,
     current_user: User = Depends(require_permission(Permission.SEARCH_DOCUMENTS))
-) -> Dict[str, Any]:
+) -> QuotationAnalysisResponse:
     """Get the AI analysis for a quotation."""
     quotation = get_quotation_request(request_id)
     
@@ -779,11 +790,12 @@ async def get_quotation_analysis(
 @router.get(
     "/quotations/dashboard/overview",
     summary="Quotation dashboard",
-    description="Get dashboard overview with AI quick-view summaries."
+    description="Get dashboard overview with AI quick-view summaries.",
+    response_model=QuotationDashboardResponse
 )
 async def get_dashboard(
     current_user: User = Depends(require_permission(Permission.SEARCH_DOCUMENTS))
-) -> Dict[str, Any]:
+) -> QuotationDashboardResponse:
     """
     Get quotation dashboard with AI-powered quick summaries.
     
