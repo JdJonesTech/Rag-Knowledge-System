@@ -15,6 +15,12 @@ from src.external_system.classifier import IntentClassifier, CustomerIntent
 from src.external_system.decision_tree import DecisionTree, NodeType
 from src.external_system.response_generator import ResponseGenerator
 from src.agentic.memory.conversation_memory import ConversationMemory
+from src.api.schemas.responses import (
+    DecisionTreeResponse, DecisionTreeNodeResponse, NavigationResponse,
+    ClassificationResponse, QueryProcessResponse, FormSubmissionResponse,
+    ContactFormResponse, QuoteRequestResponse, OrderTrackingResponse,
+    FAQResponse, SessionResponse
+)
 
 
 logger = logging.getLogger(__name__)
@@ -132,9 +138,10 @@ def get_or_create_session(session_id: Optional[str] = None) -> str:
 @router.get(
     "/decision-tree",
     summary="Get decision tree structure",
-    description="Get the complete decision tree structure for the customer portal."
+    description="Get the complete decision tree structure for the customer portal.",
+    response_model=DecisionTreeResponse
 )
-async def get_decision_tree() -> Dict[str, Any]:
+async def get_decision_tree() -> DecisionTreeResponse:
     """Get the complete decision tree."""
     return {
         "root_node": decision_tree.get_root().to_dict(),
@@ -145,9 +152,10 @@ async def get_decision_tree() -> Dict[str, Any]:
 @router.get(
     "/decision-tree/node/{node_id}",
     summary="Get specific node",
-    description="Get a specific node from the decision tree."
+    description="Get a specific node from the decision tree.",
+    response_model=DecisionTreeNodeResponse
 )
-async def get_node(node_id: str) -> Dict[str, Any]:
+async def get_node(node_id: str) -> DecisionTreeNodeResponse:
     """Get a specific decision tree node."""
     node = decision_tree.get_node(node_id)
     
@@ -163,9 +171,10 @@ async def get_node(node_id: str) -> Dict[str, Any]:
 @router.post(
     "/navigate",
     summary="Navigate decision tree",
-    description="Navigate to the next node in the decision tree."
+    description="Navigate to the next node in the decision tree.",
+    response_model=NavigationResponse
 )
-async def navigate(request: NavigationRequest) -> Dict[str, Any]:
+async def navigate(request: NavigationRequest) -> NavigationResponse:
     """
     Navigate through the decision tree.
     
@@ -219,9 +228,10 @@ async def navigate(request: NavigationRequest) -> Dict[str, Any]:
 @router.post(
     "/classify",
     summary="Classify customer intent",
-    description="Classify a customer query to determine intent."
+    description="Classify a customer query to determine intent.",
+    response_model=ClassificationResponse
 )
-async def classify_query(request: CustomerQueryRequest) -> Dict[str, Any]:
+async def classify_query(request: CustomerQueryRequest) -> ClassificationResponse:
     """
     Classify customer query intent.
     
@@ -252,9 +262,10 @@ async def classify_query(request: CustomerQueryRequest) -> Dict[str, Any]:
 @router.post(
     "/query",
     summary="Process customer query",
-    description="Process a natural language customer query and generate a response."
+    description="Process a natural language customer query and generate a response.",
+    response_model=QueryProcessResponse
 )
-async def process_query(request: CustomerQueryRequest) -> Dict[str, Any]:
+async def process_query(request: CustomerQueryRequest) -> QueryProcessResponse:
     """
     Process customer query with classification and response generation.
     Uses conversation memory for context tracking.
@@ -330,9 +341,10 @@ async def process_query(request: CustomerQueryRequest) -> Dict[str, Any]:
 @router.post(
     "/submit-form",
     summary="Submit form data",
-    description="Submit form data collected in the decision tree."
+    description="Submit form data collected in the decision tree.",
+    response_model=FormSubmissionResponse
 )
-async def submit_form(request: FormSubmissionRequest) -> Dict[str, Any]:
+async def submit_form(request: FormSubmissionRequest) -> FormSubmissionResponse:
     """
     Submit form data from a decision tree node.
     
@@ -396,9 +408,10 @@ async def submit_form(request: FormSubmissionRequest) -> Dict[str, Any]:
 @router.post(
     "/contact",
     summary="Submit contact form",
-    description="Submit a general contact form."
+    description="Submit a general contact form.",
+    response_model=ContactFormResponse
 )
-async def submit_contact_form(form: ContactFormRequest) -> Dict[str, Any]:
+async def submit_contact_form(form: ContactFormRequest) -> ContactFormResponse:
     """
     Submit a contact form.
     
@@ -426,9 +439,10 @@ async def submit_contact_form(form: ContactFormRequest) -> Dict[str, Any]:
 @router.post(
     "/quote-request",
     summary="Submit quote request",
-    description="Submit a product quote request. This creates a quotation request for internal review."
+    description="Submit a product quote request. This creates a quotation request for internal review.",
+    response_model=QuoteRequestResponse
 )
-async def submit_quote_request(form: QuoteRequestForm) -> Dict[str, Any]:
+async def submit_quote_request(form: QuoteRequestForm) -> QuoteRequestResponse:
     """
     Submit a quote request.
     
@@ -560,9 +574,10 @@ async def submit_quote_request(form: QuoteRequestForm) -> Dict[str, Any]:
 @router.post(
     "/track-order",
     summary="Track order status",
-    description="Look up order status by order number and email."
+    description="Look up order status by order number and email.",
+    response_model=OrderTrackingResponse
 )
-async def track_order(request: OrderTrackingRequest) -> Dict[str, Any]:
+async def track_order(request: OrderTrackingRequest) -> OrderTrackingResponse:
     """
     Track an order.
     
@@ -602,11 +617,12 @@ async def track_order(request: OrderTrackingRequest) -> Dict[str, Any]:
 @router.get(
     "/faq",
     summary="Get FAQ answers",
-    description="Get answer to frequently asked questions."
+    description="Get answer to frequently asked questions.",
+    response_model=FAQResponse
 )
 async def get_faq_answer(
     question: str = Query(..., min_length=5, max_length=500)
-) -> Dict[str, Any]:
+) -> FAQResponse:
     """
     Get FAQ answer.
     
@@ -629,9 +645,10 @@ async def get_faq_answer(
 @router.get(
     "/session/{session_id}",
     summary="Get session info",
-    description="Get information about a customer session."
+    description="Get information about a customer session.",
+    response_model=SessionResponse
 )
-async def get_session(session_id: str) -> Dict[str, Any]:
+async def get_session(session_id: str) -> SessionResponse:
     """
     Get session information.
     
