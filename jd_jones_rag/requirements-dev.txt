@@ -1,0 +1,14 @@
+# JD Jones RAG System - Development/Testing Requirements
+
+# Testing
+pytest==8.3.4
+pytest-asyncio==0.25.2
+pytest-cov==6.0.0
+
+# Linting & Formatting
+black==24.10.0
+isort==5.13.2
+mypy==1.14.1
+
+# Documentation (if needed)
+# mkdocs

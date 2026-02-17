@@ -78,15 +78,5 @@ Pillow>=10.0.0
 # PDF Generation (Quotations)
 reportlab>=4.0.0
 
-# Testing
-pytest==8.3.4
-pytest-asyncio==0.25.2
-
 # MCP
 mcp==1.2.0
-pytest-cov==6.0.0
-
-# Development
-black==24.10.0
-isort==5.13.2
-mypy==1.14.1
